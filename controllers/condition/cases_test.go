@@ -1,0 +1,118 @@
+package condition
+
+import (
+	. "github.com/onsi/gomega"
+	"github.com/onsi/gomega/types"
+	v1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime"
+	kubeteachv1 "kubeteach/api/v1"
+)
+
+type conditionTest struct {
+	name          string
+	obj           runtime.Object
+	taskCondition []kubeteachv1.TaskCondition
+	state         types.GomegaMatcher
+	err           types.GomegaMatcher
+}
+
+var testCases = []conditionTest{
+	{
+		name:          "Error - invalid objectType",
+		obj:           nil,
+		taskCondition: []kubeteachv1.TaskCondition{{ApiVersion: "", Kind: "", ApiGroup: "", MatchAll: false, ResourceCondition: nil}},
+		state:         BeFalse(),
+		err:           Not(BeNil()),
+	}, {
+		name:          "Error - no TaskCondition",
+		obj:           nil,
+		taskCondition: []kubeteachv1.TaskCondition{},
+		state:         BeFalse(),
+		err:           Not(BeNil()),
+	}, {
+		name:          "Error - invalid operator",
+		obj:           nil,
+		taskCondition: []kubeteachv1.TaskCondition{{ApiVersion: "v1", Kind: "Namespace", ApiGroup: "", MatchAll: false, ResourceCondition: []kubeteachv1.ResourceCondition{{Field: "metadata.name", Operator: "invalid", Value: ""}}}},
+		state:         BeFalse(),
+		err:           Not(BeNil()),
+	}, {
+		name:          "true - no ResourceCondition set",
+		obj:           nil,
+		taskCondition: []kubeteachv1.TaskCondition{{ApiVersion: "v1", Kind: "Namespace", ApiGroup: "", MatchAll: false, ResourceCondition: nil}},
+		state:         BeTrue(),
+		err:           BeNil(),
+	}, {
+		name:          "true - test eq",
+		obj:           &v1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: "test1-eq"}},
+		taskCondition: []kubeteachv1.TaskCondition{{ApiVersion: "v1", Kind: "Namespace", ApiGroup: "", MatchAll: false, ResourceCondition: []kubeteachv1.ResourceCondition{{Field: "metadata.name", Operator: "eq", Value: "test1-eq"}}}},
+		state:         BeTrue(),
+		err:           BeNil(),
+	}, {
+		name:          "false - test eq",
+		obj:           nil,
+		taskCondition: []kubeteachv1.TaskCondition{{ApiVersion: "v1", Kind: "Namespace", ApiGroup: "", MatchAll: false, ResourceCondition: []kubeteachv1.ResourceCondition{{Field: "metadata.name", Operator: "eq", Value: "test2-eq"}}}},
+		state:         BeFalse(),
+		err:           BeNil(),
+	}, {
+		name:          "true - test neq",
+		obj:           nil,
+		taskCondition: []kubeteachv1.TaskCondition{{ApiVersion: "v1", Kind: "Namespace", ApiGroup: "", MatchAll: true, ResourceCondition: []kubeteachv1.ResourceCondition{{Field: "metadata.name", Operator: "neq", Value: "test1-neq"}}}},
+		state:         BeTrue(),
+		err:           BeNil(),
+	}, {
+		name:          "false - test neq",
+		obj:           &v1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: "test2-neq"}},
+		taskCondition: []kubeteachv1.TaskCondition{{ApiVersion: "v1", Kind: "Namespace", ApiGroup: "", MatchAll: true, ResourceCondition: []kubeteachv1.ResourceCondition{{Field: "metadata.name", Operator: "neq", Value: "test2-neq"}}}},
+		state:         BeFalse(),
+		err:           BeNil(),
+	}, {
+		name:          "true - test lt",
+		obj:           &v1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: "test1-lt", Finalizers: []string{"test.domain/finalizer1", "test.domain/finalizer2", "test.domain/finalizer3"}}},
+		taskCondition: []kubeteachv1.TaskCondition{{ApiVersion: "v1", Kind: "Namespace", ApiGroup: "", MatchAll: false, ResourceCondition: []kubeteachv1.ResourceCondition{{Field: "metadata.name", Operator: "eq", Value: "test1-lt"}, {Field: "metadata.finalizers.#", Operator: "lt", Value: "5"}}}},
+		state:         BeTrue(),
+		err:           BeNil(),
+	}, {
+		name:          "false - test lt",
+		obj:           &v1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: "test2-lt", Finalizers: []string{"test.domain/finalizer1", "test.domain/finalizer2", "test.domain/finalizer3"}}},
+		taskCondition: []kubeteachv1.TaskCondition{{ApiVersion: "v1", Kind: "Namespace", ApiGroup: "", MatchAll: false, ResourceCondition: []kubeteachv1.ResourceCondition{{Field: "metadata.name", Operator: "eq", Value: "test2-lt"}, {Field: "metadata.finalizers.#", Operator: "lt", Value: "1"}}}},
+		state:         BeFalse(),
+		err:           BeNil(),
+	}, {
+		name:          "error - test lt",
+		obj:           nil,
+		taskCondition: []kubeteachv1.TaskCondition{{ApiVersion: "v1", Kind: "Namespace", ApiGroup: "", MatchAll: false, ResourceCondition: []kubeteachv1.ResourceCondition{{Field: "", Operator: "lt", Value: "noInt"}}}},
+		state:         BeFalse(),
+		err:           Not(BeNil()),
+	}, {
+		name:          "true - test gt",
+		obj:           &v1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: "test1-gt", Finalizers: []string{"test.domain/finalizer1", "test.domain/finalizer2", "test.domain/finalizer3"}}},
+		taskCondition: []kubeteachv1.TaskCondition{{ApiVersion: "v1", Kind: "Namespace", ApiGroup: "", MatchAll: false, ResourceCondition: []kubeteachv1.ResourceCondition{{Field: "metadata.name", Operator: "eq", Value: "test1-gt"}, {Field: "metadata.finalizers.#", Operator: "gt", Value: "1"}}}},
+		state:         BeTrue(),
+		err:           BeNil(),
+	}, {
+		name:          "false - test gt",
+		obj:           &v1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: "test2-gt", Finalizers: []string{"test.domain/finalizer1", "test.domain/finalizer2", "test.domain/finalizer3"}}},
+		taskCondition: []kubeteachv1.TaskCondition{{ApiVersion: "v1", Kind: "Namespace", ApiGroup: "", MatchAll: false, ResourceCondition: []kubeteachv1.ResourceCondition{{Field: "metadata.name", Operator: "eq", Value: "test2-gt"}, {Field: "metadata.finalizers.#", Operator: "gt", Value: "5"}}}},
+		state:         BeFalse(),
+		err:           BeNil(),
+	}, {
+		name:          "error - test gt",
+		obj:           nil,
+		taskCondition: []kubeteachv1.TaskCondition{{ApiVersion: "v1", Kind: "Namespace", ApiGroup: "", MatchAll: false, ResourceCondition: []kubeteachv1.ResourceCondition{{Field: "", Operator: "gt", Value: "noInt"}}}},
+		state:         BeFalse(),
+		err:           Not(BeNil()),
+	}, {
+		name:          "true - test contains",
+		obj:           &v1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: "test1-contains1"}},
+		taskCondition: []kubeteachv1.TaskCondition{{ApiVersion: "v1", Kind: "Namespace", ApiGroup: "", MatchAll: false, ResourceCondition: []kubeteachv1.ResourceCondition{{Field: "metadata.name", Operator: "contains", Value: "contains1"}}}},
+		state:         BeTrue(),
+		err:           BeNil(),
+	}, {
+		name:          "false - test contains",
+		obj:           nil,
+		taskCondition: []kubeteachv1.TaskCondition{{ApiVersion: "v1", Kind: "Namespace", ApiGroup: "", MatchAll: false, ResourceCondition: []kubeteachv1.ResourceCondition{{Field: "metadata.name", Operator: "contains", Value: "contains2"}}}},
+		state:         BeFalse(),
+		err:           BeNil(),
+	},
+}

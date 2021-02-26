@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package check
+package condition
 
 import (
 	"path/filepath"
@@ -45,7 +45,7 @@ func TestAPIs(t *testing.T) {
 	RegisterFailHandler(Fail)
 
 	RunSpecsWithDefaultAndCustomReporters(t,
-		"CheckController Suite",
+		"ConditionChecks Suite",
 		[]Reporter{printer.NewlineReporter{}})
 }
 
