@@ -61,6 +61,9 @@ func (c *ConditionChecks) runTaskCondition(ctx context.Context, taskCondition te
 }
 
 func (c *ConditionChecks) runResourceConditions(resourceConditions []teachv1alpha1.ResourceCondition, item unstructured.Unstructured) (bool, error) {
+	if len(resourceConditions) == 0 {
+		return false, errors.New("no resourceCondition defined")
+	}
 	parsed, _ := json.Marshal(item.Object)
 	for _, resourceCondition := range resourceConditions {
 		success, err := c.runResourceCondition(resourceCondition, string(parsed))

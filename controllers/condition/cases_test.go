@@ -19,29 +19,29 @@ type conditionTest struct {
 
 var testCases = []conditionTest{
 	{
-		name:          "Error - invalid objectType",
+		name:          "error - invalid objectType",
 		obj:           nil,
 		taskCondition: []teachv1alpha1.TaskCondition{{ApiVersion: "", Kind: "", ApiGroup: "", MatchAll: false, ResourceCondition: nil}},
 		state:         BeFalse(),
 		err:           Not(BeNil()),
 	}, {
-		name:          "Error - no TaskCondition",
+		name:          "error - no TaskCondition",
 		obj:           nil,
 		taskCondition: []teachv1alpha1.TaskCondition{},
 		state:         BeFalse(),
 		err:           Not(BeNil()),
 	}, {
-		name:          "Error - invalid operator",
+		name:          "error - invalid operator",
 		obj:           nil,
 		taskCondition: []teachv1alpha1.TaskCondition{{ApiVersion: "v1", Kind: "Namespace", ApiGroup: "", MatchAll: false, ResourceCondition: []teachv1alpha1.ResourceCondition{{Field: "metadata.name", Operator: "invalid", Value: ""}}}},
 		state:         BeFalse(),
 		err:           Not(BeNil()),
 	}, {
-		name:          "true - no ResourceCondition set",
+		name:          "error - no ResourceCondition set",
 		obj:           nil,
 		taskCondition: []teachv1alpha1.TaskCondition{{ApiVersion: "v1", Kind: "Namespace", ApiGroup: "", MatchAll: false, ResourceCondition: nil}},
-		state:         BeTrue(),
-		err:           BeNil(),
+		state:         BeFalse(),
+		err:           Not(BeNil()),
 	}, {
 		name:          "true - test eq",
 		obj:           &v1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: "test1-eq"}},
@@ -79,7 +79,7 @@ var testCases = []conditionTest{
 		state:         BeFalse(),
 		err:           BeNil(),
 	}, {
-		name:          "error - test lt",
+		name:          "error - test lt no int in value",
 		obj:           nil,
 		taskCondition: []teachv1alpha1.TaskCondition{{ApiVersion: "v1", Kind: "Namespace", ApiGroup: "", MatchAll: false, ResourceCondition: []teachv1alpha1.ResourceCondition{{Field: "", Operator: "lt", Value: "noInt"}}}},
 		state:         BeFalse(),
@@ -97,7 +97,7 @@ var testCases = []conditionTest{
 		state:         BeFalse(),
 		err:           BeNil(),
 	}, {
-		name:          "error - test gt",
+		name:          "error - test gt no int in value",
 		obj:           nil,
 		taskCondition: []teachv1alpha1.TaskCondition{{ApiVersion: "v1", Kind: "Namespace", ApiGroup: "", MatchAll: false, ResourceCondition: []teachv1alpha1.ResourceCondition{{Field: "", Operator: "gt", Value: "noInt"}}}},
 		state:         BeFalse(),
