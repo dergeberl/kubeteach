@@ -19,8 +19,7 @@ spec:
     plural: taskdefinitions
     singular: taskdefinition
   scope: Namespaced
-  subresources:
-    status: {}
+  subresources: {}
   validation:
     openAPIV3Schema:
       description: TaskDefinition is the Schema for the taskdefinitions API

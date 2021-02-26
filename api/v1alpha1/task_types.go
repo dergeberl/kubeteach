@@ -55,7 +55,7 @@ type TaskSpec struct {
 type TaskStatus struct {
 	// State represent the status of this task
 	// Can be pending, active, successful
-	State string `json:"state,omitempty"`
+	State *string `json:"state,omitempty"`
 }
 
 func init() {

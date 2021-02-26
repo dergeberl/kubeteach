@@ -67,15 +67,17 @@ func (r *TaskDefinitionReconciler) Reconcile(req ctrl.Request) (ctrl.Result, err
 		return ctrl.Result{}, nil
 	}
 
-	if taskDefinition.Status.State == "" {
+	// set status if empty
+	if taskDefinition.Status.State == nil {
 		err = r.setState(ctx, statePending, &taskDefinition.ObjectMeta, nil)
 		if err != nil {
 			return reconcile.Result{}, err
 		}
+		return ctrl.Result{Requeue: true}, err
 	}
 
 	//skip successful objects
-	if taskDefinition.Status.State == stateSuccessful {
+	if *taskDefinition.Status.State == stateSuccessful {
 		return ctrl.Result{}, nil
 	}
 
@@ -83,7 +85,7 @@ func (r *TaskDefinitionReconciler) Reconcile(req ctrl.Request) (ctrl.Result, err
 	taskMeta, err := r.createOrUpdateTask(ctx, &taskDefinition)
 
 	//check pending state
-	if taskDefinition.Status.State == statePending || taskDefinition.Status.State == "" {
+	if *taskDefinition.Status.State == statePending {
 		if taskDefinition.Spec.RequiredTaskName != nil {
 			reqTask := teachv1alpha1.TaskDefinition{}
 			err = r.Client.Get(ctx, client.ObjectKey{Name: *taskDefinition.Spec.RequiredTaskName, Namespace: req.Namespace}, &reqTask)
@@ -93,7 +95,7 @@ func (r *TaskDefinitionReconciler) Reconcile(req ctrl.Request) (ctrl.Result, err
 				}
 				return ctrl.Result{}, err
 			}
-			if reqTask.Status.State == stateSuccessful {
+			if *reqTask.Status.State == stateSuccessful {
 				err = r.setState(ctx, stateActive, &taskDefinition.ObjectMeta, &taskMeta)
 				if err != nil {
 					return reconcile.Result{}, err
@@ -101,12 +103,6 @@ func (r *TaskDefinitionReconciler) Reconcile(req ctrl.Request) (ctrl.Result, err
 			}
 		} else {
 			err = r.setState(ctx, stateActive, &taskDefinition.ObjectMeta, &taskMeta)
-			if err != nil {
-				return reconcile.Result{}, err
-			}
-		}
-		if taskDefinition.Status.State == "" {
-			err = r.setState(ctx, statePending, &taskDefinition.ObjectMeta, nil)
 			if err != nil {
 				return reconcile.Result{}, err
 			}
@@ -212,7 +208,7 @@ func (r *TaskDefinitionReconciler) createOrUpdateTask(ctx context.Context, taskD
 
 	//sync status
 	if taskDefinition.Status.State != task.Status.State {
-		patch := []byte(`{"status":{"state":"` + taskDefinition.Status.State + `"}}`)
+		patch := []byte(`{"status":{"state":"` + *taskDefinition.Status.State + `"}}`)
 		if err := r.Client.Patch(ctx, task, client.RawPatch(types.MergePatchType, patch)); err != nil {
 			return metav1.ObjectMeta{}, err
 		}
@@ -220,18 +216,16 @@ func (r *TaskDefinitionReconciler) createOrUpdateTask(ctx context.Context, taskD
 	return task.ObjectMeta, nil
 }
 
-func (r *TaskDefinitionReconciler) setState(ctx context.Context, state string, taskDefinition, task *metav1.ObjectMeta) error {
+func (r *TaskDefinitionReconciler) setState(ctx context.Context, state string, objectTaskDefinition, objectTask *metav1.ObjectMeta) error {
 	patch := []byte(`{"status":{"state":"` + state + `"}}`)
-
-	if taskDefinition != nil {
-		err := r.Client.Patch(ctx, &teachv1alpha1.TaskDefinition{ObjectMeta: *taskDefinition}, client.RawPatch(types.MergePatchType, patch))
+	if objectTaskDefinition != nil {
+		err := r.Client.Patch(ctx, &teachv1alpha1.TaskDefinition{ObjectMeta: *objectTaskDefinition}, client.RawPatch(types.MergePatchType, patch))
 		if err != nil {
 			return err
 		}
 	}
-
-	if task != nil {
-		err := r.Client.Patch(ctx, &teachv1alpha1.Task{ObjectMeta: *task}, client.RawPatch(types.MergePatchType, patch))
+	if objectTask != nil {
+		err := r.Client.Patch(ctx, &teachv1alpha1.Task{ObjectMeta: *objectTask}, client.RawPatch(types.MergePatchType, patch))
 		if err != nil {
 			return err
 		}

@@ -20,7 +20,6 @@ import (
 
 // +kubebuilder:object:root=true
 // +kubebuilder:printcolumn:name="Status",type=string,JSONPath=`.status.state`
-// +kubebuilder:subresource:status
 
 // TaskDefinition is the Schema for the taskdefinitions API
 type TaskDefinition struct {
@@ -83,7 +82,7 @@ type ResourceCondition struct {
 type TaskDefinitionStatus struct {
 	// State represent the status of this task
 	// Can be pending, active, successful
-	State string `json:"state"`
+	State *string `json:"state"`
 }
 
 func init() {
