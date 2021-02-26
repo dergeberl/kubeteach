@@ -1,4 +1,4 @@
-package check
+package condition
 
 import (
 	"context"
@@ -14,18 +14,17 @@ import (
 	"strings"
 )
 
-type CheckController struct {
-	Client     client.Client
-	Log        logr.Logger
-	CheckItems []kubeteachv1.TaskCondition
+type ConditionChecks struct {
+	Client client.Client
+	Log    logr.Logger
 }
 
-func (c *CheckController) ApplyChecks(ctx context.Context) (bool, error) {
-	if len(c.CheckItems) < 1 {
+func (c *ConditionChecks) ApplyChecks(ctx context.Context, taskConditions []kubeteachv1.TaskCondition) (bool, error) {
+	if len(taskConditions) < 1 {
 		return false, errors.New("no checks to apply")
 	}
-	for _, checkItem := range c.CheckItems {
-		success, err := c.runCheckItem(ctx, checkItem)
+	for _, taskCondition := range taskConditions {
+		success, err := c.runCheckItem(ctx, taskCondition)
 		if err != nil {
 			return false, err
 		}
@@ -36,35 +35,35 @@ func (c *CheckController) ApplyChecks(ctx context.Context) (bool, error) {
 	return true, nil
 }
 
-func (c *CheckController) runCheckItem(ctx context.Context, checkItem kubeteachv1.TaskCondition) (bool, error) {
-	u, err := c.getItemList(ctx, checkItem)
+func (c *ConditionChecks) runCheckItem(ctx context.Context, taskCondition kubeteachv1.TaskCondition) (bool, error) {
+	u, err := c.getItemList(ctx, taskCondition)
 	if err != nil {
 		return false, err
 	}
 
 	var successfulItem int
 	for _, item := range u.Items {
-		success, err := c.runChecks(checkItem.ResourceCondition, item)
+		success, err := c.runChecks(taskCondition.ResourceCondition, item)
 		if err != nil {
 			return false, err
 		}
-		if success && !checkItem.MatchAll {
+		if success && !taskCondition.MatchAll {
 			return true, nil
 		}
 		if success {
 			successfulItem++
 		}
 	}
-	if checkItem.MatchAll && successfulItem == len(u.Items) {
+	if taskCondition.MatchAll && successfulItem == len(u.Items) {
 		return true, nil
 	}
 	return false, nil
 }
 
-func (c *CheckController) runChecks(checks []kubeteachv1.ResourceCondition, item unstructured.Unstructured) (bool, error) {
+func (c *ConditionChecks) runChecks(resourceConditions []kubeteachv1.ResourceCondition, item unstructured.Unstructured) (bool, error) {
 	parsed, _ := json.Marshal(item.Object)
-	for _, check := range checks {
-		success, err := c.runCheck(check, string(parsed))
+	for _, resourceCondition := range resourceConditions {
+		success, err := c.runCheck(resourceCondition, string(parsed))
 		if err != nil {
 			return false, err
 		}
@@ -75,12 +74,12 @@ func (c *CheckController) runChecks(checks []kubeteachv1.ResourceCondition, item
 	return true, nil
 }
 
-func (c *CheckController) runCheck(check kubeteachv1.ResourceCondition, json string) (bool, error) {
-	value := gjson.Get(json, check.Field)
+func (c *ConditionChecks) runCheck(resourceCondition kubeteachv1.ResourceCondition, json string) (bool, error) {
+	value := gjson.Get(json, resourceCondition.Field)
 
-	switch check.Operator {
+	switch resourceCondition.Operator {
 	case "gt":
-		checkValue, err := strconv.ParseInt(check.Value, 10, 0)
+		checkValue, err := strconv.ParseInt(resourceCondition.Value, 10, 0)
 		if err != nil {
 			return false, err
 		}
@@ -88,7 +87,7 @@ func (c *CheckController) runCheck(check kubeteachv1.ResourceCondition, json str
 			return true, nil
 		}
 	case "lt":
-		checkValue, err := strconv.ParseInt(check.Value, 10, 0)
+		checkValue, err := strconv.ParseInt(resourceCondition.Value, 10, 0)
 		if err != nil {
 			return false, err
 		}
@@ -96,27 +95,29 @@ func (c *CheckController) runCheck(check kubeteachv1.ResourceCondition, json str
 			return true, nil
 		}
 	case "eq":
-		if value.String() == check.Value {
+		if value.String() == resourceCondition.Value {
 			return true, nil
 		}
 	case "neq":
-		if value.String() != check.Value {
+		if value.String() != resourceCondition.Value {
 			return true, nil
 		}
 	case "contains":
-		if strings.Contains(value.String(), check.Value) {
+		if strings.Contains(value.String(), resourceCondition.Value) {
 			return true, nil
 		}
+	default:
+		return false, errors.New("invalid operator")
 	}
 	return false, nil
 }
 
-func (c *CheckController) getItemList(ctx context.Context, checkItem kubeteachv1.TaskCondition) (*unstructured.UnstructuredList, error) {
+func (c *ConditionChecks) getItemList(ctx context.Context, taskCondition kubeteachv1.TaskCondition) (*unstructured.UnstructuredList, error) {
 	u := unstructured.UnstructuredList{}
 	u.SetGroupVersionKind(schema.GroupVersionKind{
-		Group:   checkItem.ApiGroup,
-		Version: checkItem.ApiVersion,
-		Kind:    checkItem.Kind,
+		Group:   taskCondition.ApiGroup,
+		Version: taskCondition.ApiVersion,
+		Kind:    taskCondition.Kind,
 	})
 
 	err := c.Client.List(ctx, &u, &client.ListOptions{})
