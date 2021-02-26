@@ -70,11 +70,12 @@ type ResourceCondition struct {
 	// For more details have a look into gjson docs: https://github.com/tidwall/gjson
 	Field string `json:"field,omitempty"`
 	// Operator is for the condition.
-	// Valid operators are eq, neq, lt, gt, contains.
-	// +kubebuilder:validation:Enum=eq;neq;lt;gt;contains
+	// Valid operators are eq, neq, lt, gt, nil, notnil contains.
+	// +kubebuilder:validation:Enum=eq;neq;lt;gt;contains;nil;notnil
 	Operator string `json:"operator,omitempty"`
 	// Value contains the value which the operater must match.
-	// Must be a string but for lt and gt only numbers are allowed in this string
+	// Must be a string but for lt and gt only numbers are allowed in this string.
+	// Value is ignored by operator nil and notnil
 	Value string `json:"value,omitempty"`
 }
 

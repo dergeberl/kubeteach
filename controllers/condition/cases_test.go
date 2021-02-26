@@ -114,5 +114,29 @@ var testCases = []conditionTest{
 		taskCondition: []teachv1alpha1.TaskCondition{{ApiVersion: "v1", Kind: "Namespace", ApiGroup: "", MatchAll: false, ResourceCondition: []teachv1alpha1.ResourceCondition{{Field: "metadata.name", Operator: "contains", Value: "contains2"}}}},
 		state:         BeFalse(),
 		err:           BeNil(),
+	}, {
+		name:          "true - test nil",
+		obj:           &v1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: "test1-nil"}},
+		taskCondition: []teachv1alpha1.TaskCondition{{ApiVersion: "v1", Kind: "Namespace", ApiGroup: "", MatchAll: false, ResourceCondition: []teachv1alpha1.ResourceCondition{{Field: "metadata.name", Operator: "eq", Value: "test1-nil"}, {Field: "metadata.deletionTimestamp", Operator: "nil"}}}},
+		state:         BeTrue(),
+		err:           BeNil(),
+	}, {
+		name:          "false - test nil",
+		obj:           &v1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: "test2-nil"}},
+		taskCondition: []teachv1alpha1.TaskCondition{{ApiVersion: "v1", Kind: "Namespace", ApiGroup: "", MatchAll: false, ResourceCondition: []teachv1alpha1.ResourceCondition{{Field: "metadata.name", Operator: "eq", Value: "test2-nil"}, {Field: "metadata.name", Operator: "nil"}}}},
+		state:         BeFalse(),
+		err:           BeNil(),
+	}, {
+		name:          "true - test notnil",
+		obj:           &v1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: "test1-notnil"}},
+		taskCondition: []teachv1alpha1.TaskCondition{{ApiVersion: "v1", Kind: "Namespace", ApiGroup: "", MatchAll: false, ResourceCondition: []teachv1alpha1.ResourceCondition{{Field: "metadata.name", Operator: "eq", Value: "test1-notnil"}, {Field: "metadata.name", Operator: "notnil"}}}},
+		state:         BeTrue(),
+		err:           BeNil(),
+	}, {
+		name:          "false - test notnil",
+		obj:           &v1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: "test2-notnil"}},
+		taskCondition: []teachv1alpha1.TaskCondition{{ApiVersion: "v1", Kind: "Namespace", ApiGroup: "", MatchAll: false, ResourceCondition: []teachv1alpha1.ResourceCondition{{Field: "metadata.name", Operator: "eq", Value: "test2-notnil"}, {Field: "metadata.deletionTimestamp", Operator: "notnil"}}}},
+		state:         BeFalse(),
+		err:           BeNil(),
 	},
 }

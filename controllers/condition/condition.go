@@ -86,6 +86,14 @@ func (c *ConditionChecks) runResourceCondition(resourceCondition teachv1alpha1.R
 		if value.Int() > checkValue {
 			return true, nil
 		}
+	case "nil":
+		if !value.Exists() {
+			return true, nil
+		}
+	case "notnil":
+		if value.Exists() {
+			return true, nil
+		}
 	case "lt":
 		checkValue, err := strconv.ParseInt(resourceCondition.Value, 10, 0)
 		if err != nil {
