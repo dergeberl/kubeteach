@@ -24,7 +24,7 @@ func (c *ConditionChecks) ApplyChecks(ctx context.Context, taskConditions []teac
 		return false, errors.New("no checks to apply")
 	}
 	for _, taskCondition := range taskConditions {
-		success, err := c.runCheckItem(ctx, taskCondition)
+		success, err := c.runTaskCondition(ctx, taskCondition)
 		if err != nil {
 			return false, err
 		}
@@ -35,15 +35,15 @@ func (c *ConditionChecks) ApplyChecks(ctx context.Context, taskConditions []teac
 	return true, nil
 }
 
-func (c *ConditionChecks) runCheckItem(ctx context.Context, taskCondition teachv1alpha1.TaskCondition) (bool, error) {
-	u, err := c.getItemList(ctx, taskCondition)
+func (c *ConditionChecks) runTaskCondition(ctx context.Context, taskCondition teachv1alpha1.TaskCondition) (bool, error) {
+	u, err := c.getConditionObject(ctx, taskCondition)
 	if err != nil {
 		return false, err
 	}
 
 	var successfulItem int
 	for _, item := range u.Items {
-		success, err := c.runChecks(taskCondition.ResourceCondition, item)
+		success, err := c.runResourceConditions(taskCondition.ResourceCondition, item)
 		if err != nil {
 			return false, err
 		}
@@ -60,10 +60,10 @@ func (c *ConditionChecks) runCheckItem(ctx context.Context, taskCondition teachv
 	return false, nil
 }
 
-func (c *ConditionChecks) runChecks(resourceConditions []teachv1alpha1.ResourceCondition, item unstructured.Unstructured) (bool, error) {
+func (c *ConditionChecks) runResourceConditions(resourceConditions []teachv1alpha1.ResourceCondition, item unstructured.Unstructured) (bool, error) {
 	parsed, _ := json.Marshal(item.Object)
 	for _, resourceCondition := range resourceConditions {
-		success, err := c.runCheck(resourceCondition, string(parsed))
+		success, err := c.runResourceCondition(resourceCondition, string(parsed))
 		if err != nil {
 			return false, err
 		}
@@ -74,7 +74,7 @@ func (c *ConditionChecks) runChecks(resourceConditions []teachv1alpha1.ResourceC
 	return true, nil
 }
 
-func (c *ConditionChecks) runCheck(resourceCondition teachv1alpha1.ResourceCondition, json string) (bool, error) {
+func (c *ConditionChecks) runResourceCondition(resourceCondition teachv1alpha1.ResourceCondition, json string) (bool, error) {
 	value := gjson.Get(json, resourceCondition.Field)
 
 	switch resourceCondition.Operator {
@@ -112,7 +112,7 @@ func (c *ConditionChecks) runCheck(resourceCondition teachv1alpha1.ResourceCondi
 	return false, nil
 }
 
-func (c *ConditionChecks) getItemList(ctx context.Context, taskCondition teachv1alpha1.TaskCondition) (*unstructured.UnstructuredList, error) {
+func (c *ConditionChecks) getConditionObject(ctx context.Context, taskCondition teachv1alpha1.TaskCondition) (*unstructured.UnstructuredList, error) {
 	u := unstructured.UnstructuredList{}
 	u.SetGroupVersionKind(schema.GroupVersionKind{
 		Group:   taskCondition.ApiGroup,
