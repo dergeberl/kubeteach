@@ -87,7 +87,6 @@ func (r *TaskDefinitionReconciler) Reconcile(req ctrl.Request) (ctrl.Result, err
 	//create or update Task
 	task, err := r.createOrUpdateTask(ctx, &taskDefinition)
 	if err != nil {
-		panic(err)
 		return ctrl.Result{}, err
 	}
 	//check pending state
