@@ -81,3 +81,21 @@ spec:
         - field: "spec.containers.0.image"
           operator: "eq"
           value: "nginx"
+---
+apiVersion: kubeteach.geberl.io/v1alpha1
+kind: TaskDefinition
+metadata:
+  name: task5
+spec:
+  taskSpec:
+    title: "Delete Namespace"
+    description: "Delete Namespace from task1 (kubeteach)"
+  requiredTaskName: task1
+  taskConditions:
+    - apiVersion: v1
+      kind: Namespace
+      matchAll: true
+      resourceCondition:
+        - field: "metadata.name"
+          operator: "neq"
+          value: "kubeteach"
