@@ -20,7 +20,7 @@ spec:
     - jsonPath: .status.state
       name: Status
       type: string
-    name: v1
+    name: v1alpha1
     schema:
       openAPIV3Schema:
         description: TaskDefinition is the Schema for the taskdefinitions API

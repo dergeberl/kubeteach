@@ -22,7 +22,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
-	kubeteachv1 "kubeteach/api/v1"
+	teachv1alpha1 "kubeteach/api/v1alpha1"
 	"kubeteach/controllers/condition"
 	"reflect"
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -53,7 +53,7 @@ func (r *TaskDefinitionReconciler) Reconcile(req ctrl.Request) (ctrl.Result, err
 	_ = r.Log.WithValues("taskdefinition", req.NamespacedName)
 
 	// get taskDefinition
-	taskDefinition := kubeteachv1.TaskDefinition{}
+	taskDefinition := teachv1alpha1.TaskDefinition{}
 	err := r.Client.Get(ctx, req.NamespacedName, &taskDefinition)
 	if err != nil {
 		if errors.IsNotFound(err) {
@@ -85,7 +85,7 @@ func (r *TaskDefinitionReconciler) Reconcile(req ctrl.Request) (ctrl.Result, err
 	//check pending state
 	if taskDefinition.Status.State == statePending || taskDefinition.Status.State == "" {
 		if taskDefinition.Spec.RequiredTaskName != nil {
-			reqTask := kubeteachv1.TaskDefinition{}
+			reqTask := teachv1alpha1.TaskDefinition{}
 			err = r.Client.Get(ctx, client.ObjectKey{Name: *taskDefinition.Spec.RequiredTaskName, Namespace: req.Namespace}, &reqTask)
 			if err != nil {
 				if errors.IsNotFound(err) {
@@ -161,11 +161,11 @@ func (r *TaskDefinitionReconciler) Reconcile(req ctrl.Request) (ctrl.Result, err
 	return ctrl.Result{RequeueAfter: time.Duration(5) * time.Second}, nil
 }
 
-func (r *TaskDefinitionReconciler) createOrUpdateTask(ctx context.Context, taskDefinition *kubeteachv1.TaskDefinition) (metav1.ObjectMeta, error) {
+func (r *TaskDefinitionReconciler) createOrUpdateTask(ctx context.Context, taskDefinition *teachv1alpha1.TaskDefinition) (metav1.ObjectMeta, error) {
 
-	taskList := kubeteachv1.TaskList{}
+	taskList := teachv1alpha1.TaskList{}
 	r.Client.List(ctx, &taskList)
-	var task *kubeteachv1.Task
+	var task *teachv1alpha1.Task
 	for _, taskTtem := range taskList.Items {
 		if taskTtem.OwnerReferences[0].UID == taskDefinition.UID {
 			//found task
@@ -176,10 +176,10 @@ func (r *TaskDefinitionReconciler) createOrUpdateTask(ctx context.Context, taskD
 
 	//create task if not found
 	if task == nil {
-		task = &kubeteachv1.Task{
+		task = &teachv1alpha1.Task{
 			TypeMeta: metav1.TypeMeta{
 				Kind:       "Task",
-				APIVersion: "kubeteach.geberl.io/v1",
+				APIVersion: "kubeteach.geberl.io/v1alpha1",
 			},
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      taskDefinition.ObjectMeta.Name,
@@ -192,7 +192,7 @@ func (r *TaskDefinitionReconciler) createOrUpdateTask(ctx context.Context, taskD
 				}},
 			},
 			Spec:   taskDefinition.Spec.TaskSpec,
-			Status: kubeteachv1.TaskStatus{State: taskDefinition.Status.State},
+			Status: teachv1alpha1.TaskStatus{State: taskDefinition.Status.State},
 		}
 		err := r.Client.Create(ctx, task)
 		if err != nil {
@@ -224,14 +224,14 @@ func (r *TaskDefinitionReconciler) setState(ctx context.Context, state string, t
 	patch := []byte(`{"status":{"state":"` + state + `"}}`)
 
 	if taskDefinition != nil {
-		err := r.Client.Patch(ctx, &kubeteachv1.TaskDefinition{ObjectMeta: *taskDefinition}, client.RawPatch(types.MergePatchType, patch))
+		err := r.Client.Patch(ctx, &teachv1alpha1.TaskDefinition{ObjectMeta: *taskDefinition}, client.RawPatch(types.MergePatchType, patch))
 		if err != nil {
 			return err
 		}
 	}
 
 	if task != nil {
-		err := r.Client.Patch(ctx, &kubeteachv1.Task{ObjectMeta: *task}, client.RawPatch(types.MergePatchType, patch))
+		err := r.Client.Patch(ctx, &teachv1alpha1.Task{ObjectMeta: *task}, client.RawPatch(types.MergePatchType, patch))
 		if err != nil {
 			return err
 		}
@@ -241,6 +241,6 @@ func (r *TaskDefinitionReconciler) setState(ctx context.Context, state string, t
 
 func (r *TaskDefinitionReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
-		For(&kubeteachv1.TaskDefinition{}).
+		For(&teachv1alpha1.TaskDefinition{}).
 		Complete(r)
 }

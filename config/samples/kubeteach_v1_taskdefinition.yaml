@@ -1,5 +1,5 @@
 ---
-apiVersion: kubeteach.geberl.io/v1
+apiVersion: kubeteach.geberl.io/v1alpha1
 kind: TaskDefinition
 metadata:
   name: task1
@@ -8,14 +8,14 @@ spec:
     title: "Create a Namespace"
     description: "Create a Namespace with the name kubeteach"
   taskConditions:
-    - apiVersion: v1
+    - apiVersion: v1alpha1
       kind: Namespace
       resourceCondition:
         - field: "metadata.name"
           operator: "eq"
           value: "kubeteach"
 ---
-apiVersion: kubeteach.geberl.io/v1
+apiVersion: kubeteach.geberl.io/v1alpha1
 kind: TaskDefinition
 metadata:
   name: task2
@@ -24,7 +24,7 @@ spec:
     title: "Create a Pod"
     description: "Create a pod in the default Namespace with the image nginx"
   taskConditions:
-    - apiVersion: v1
+    - apiVersion: v1alpha1
       kind: Pod
       resourceCondition:
         - field: "metadata.name"
@@ -37,7 +37,7 @@ spec:
           operator: "eq"
           value: "nginx"
 ---
-apiVersion: kubeteach.geberl.io/v1
+apiVersion: kubeteach.geberl.io/v1alpha1
 kind: TaskDefinition
 metadata:
   name: task3
@@ -47,7 +47,7 @@ spec:
     title: "Create a Pod"
     description: "Create a pod in the default Namespace with the image nginx"
   taskConditions:
-    - apiVersion: v1
+    - apiVersion: v1alpha1
       kind: Pod
       resourceCondition:
         - field: "metadata.name"

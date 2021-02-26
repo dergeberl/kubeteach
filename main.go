@@ -26,7 +26,7 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
-	kubeteachv1 "kubeteach/api/v1"
+	teachv1alpha1 "kubeteach/api/v1alpha1"
 	"kubeteach/controllers"
 	// +kubebuilder:scaffold:imports
 )
@@ -39,7 +39,7 @@ var (
 func init() {
 	_ = clientgoscheme.AddToScheme(scheme)
 
-	_ = kubeteachv1.AddToScheme(scheme)
+	_ = teachv1alpha1.AddToScheme(scheme)
 	// +kubebuilder:scaffold:scheme
 }
 

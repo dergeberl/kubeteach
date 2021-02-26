@@ -12,7 +12,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package v1
+package v1alpha1
 
 import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -26,8 +26,8 @@ import (
 type TaskDefinition struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
-	Spec   TaskDefinitionSpec   `json:"spec,omitempty"`
-	Status TaskDefinitionStatus `json:"status,omitempty"`
+	Spec              TaskDefinitionSpec   `json:"spec,omitempty"`
+	Status            TaskDefinitionStatus `json:"status,omitempty"`
 }
 
 // +kubebuilder:object:root=true
@@ -39,28 +39,27 @@ type TaskDefinitionList struct {
 	Items           []TaskDefinition `json:"items"`
 }
 
-
 // TaskDefinitionSpec defines the desired state of TaskDefinition
 type TaskDefinitionSpec struct {
 	// TaskSpec TODO
-	TaskSpec         TaskSpec        `json:"taskSpec,omitempty"`
+	TaskSpec TaskSpec `json:"taskSpec,omitempty"`
 	// TaskConditions TODO
-	TaskConditions   []TaskCondition `json:"taskConditions,omitempty"`
+	TaskConditions []TaskCondition `json:"taskConditions,omitempty"`
 	// RequiredTaskName TODO
-	RequiredTaskName *string         `json:"requiredTaskName,omitempty"`
+	RequiredTaskName *string `json:"requiredTaskName,omitempty"`
 }
 
 // TaskCondition TODO
 type TaskCondition struct {
 	// ApiVersion is used of the object that should be match this conditions
-	ApiVersion        string              `json:"apiVersion,omitempty"`
+	ApiVersion string `json:"apiVersion,omitempty"`
 	// Kind is used of the object that should be match this conditions
-	Kind              string              `json:"kind,omitempty"`
+	Kind string `json:"kind,omitempty"`
 	// ApiGroup is used of the object that should be match this conditions
-	ApiGroup          string              `json:"apiGroup,omitempty"`
+	ApiGroup string `json:"apiGroup,omitempty"`
 	// MatchAll it set to true, ResourceCondition must be successful on all objects of this type
 	// Useful to check if a object is deleted
-	MatchAll          bool                `json:"matchAll,omitempty"`
+	MatchAll bool `json:"matchAll,omitempty"`
 	// ResourceCondition describe the conditions that must be apply to success this TaskCondition
 	ResourceCondition []ResourceCondition `json:"resourceCondition,omitempty"`
 }
@@ -77,7 +76,7 @@ type ResourceCondition struct {
 	Operator string `json:"operator,omitempty"`
 	// Value contains the value which the operater must match.
 	// Must be a string but for lt and gt only numbers are allowed in this string
-	Value    string `json:"value,omitempty"`
+	Value string `json:"value,omitempty"`
 }
 
 // TaskDefinitionStatus defines the observed state of TaskDefinition
@@ -86,7 +85,6 @@ type TaskDefinitionStatus struct {
 	// Can be pending, active, successful
 	State string `json:"state"`
 }
-
 
 func init() {
 	SchemeBuilder.Register(&TaskDefinition{}, &TaskDefinitionList{})

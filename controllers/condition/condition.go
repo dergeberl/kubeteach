@@ -8,7 +8,7 @@ import (
 	"github.com/tidwall/gjson"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime/schema"
-	kubeteachv1 "kubeteach/api/v1"
+	teachv1alpha1 "kubeteach/api/v1alpha1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"strconv"
 	"strings"
@@ -19,7 +19,7 @@ type ConditionChecks struct {
 	Log    logr.Logger
 }
 
-func (c *ConditionChecks) ApplyChecks(ctx context.Context, taskConditions []kubeteachv1.TaskCondition) (bool, error) {
+func (c *ConditionChecks) ApplyChecks(ctx context.Context, taskConditions []teachv1alpha1.TaskCondition) (bool, error) {
 	if len(taskConditions) < 1 {
 		return false, errors.New("no checks to apply")
 	}
@@ -35,7 +35,7 @@ func (c *ConditionChecks) ApplyChecks(ctx context.Context, taskConditions []kube
 	return true, nil
 }
 
-func (c *ConditionChecks) runCheckItem(ctx context.Context, taskCondition kubeteachv1.TaskCondition) (bool, error) {
+func (c *ConditionChecks) runCheckItem(ctx context.Context, taskCondition teachv1alpha1.TaskCondition) (bool, error) {
 	u, err := c.getItemList(ctx, taskCondition)
 	if err != nil {
 		return false, err
@@ -60,7 +60,7 @@ func (c *ConditionChecks) runCheckItem(ctx context.Context, taskCondition kubete
 	return false, nil
 }
 
-func (c *ConditionChecks) runChecks(resourceConditions []kubeteachv1.ResourceCondition, item unstructured.Unstructured) (bool, error) {
+func (c *ConditionChecks) runChecks(resourceConditions []teachv1alpha1.ResourceCondition, item unstructured.Unstructured) (bool, error) {
 	parsed, _ := json.Marshal(item.Object)
 	for _, resourceCondition := range resourceConditions {
 		success, err := c.runCheck(resourceCondition, string(parsed))
@@ -74,7 +74,7 @@ func (c *ConditionChecks) runChecks(resourceConditions []kubeteachv1.ResourceCon
 	return true, nil
 }
 
-func (c *ConditionChecks) runCheck(resourceCondition kubeteachv1.ResourceCondition, json string) (bool, error) {
+func (c *ConditionChecks) runCheck(resourceCondition teachv1alpha1.ResourceCondition, json string) (bool, error) {
 	value := gjson.Get(json, resourceCondition.Field)
 
 	switch resourceCondition.Operator {
@@ -112,7 +112,7 @@ func (c *ConditionChecks) runCheck(resourceCondition kubeteachv1.ResourceConditi
 	return false, nil
 }
 
-func (c *ConditionChecks) getItemList(ctx context.Context, taskCondition kubeteachv1.TaskCondition) (*unstructured.UnstructuredList, error) {
+func (c *ConditionChecks) getItemList(ctx context.Context, taskCondition teachv1alpha1.TaskCondition) (*unstructured.UnstructuredList, error) {
 	u := unstructured.UnstructuredList{}
 	u.SetGroupVersionKind(schema.GroupVersionKind{
 		Group:   taskCondition.ApiGroup,
