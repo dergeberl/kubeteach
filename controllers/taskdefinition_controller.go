@@ -28,7 +28,6 @@ import (
 	"reflect"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-	"sigs.k8s.io/controller-runtime/pkg/controller"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 	"time"
 )
@@ -77,7 +76,7 @@ func (r *TaskDefinitionReconciler) Reconcile(req ctrl.Request) (ctrl.Result, err
 		if err != nil {
 			return reconcile.Result{}, err
 		}
-		return ctrl.Result{Requeue: true}, err
+		return ctrl.Result{Requeue: true}, nil
 	}
 
 	//skip successful objects
@@ -87,13 +86,16 @@ func (r *TaskDefinitionReconciler) Reconcile(req ctrl.Request) (ctrl.Result, err
 
 	//create or update Task
 	task, err := r.createOrUpdateTask(ctx, &taskDefinition)
-
+	if err != nil {
+		panic(err)
+		return ctrl.Result{}, err
+	}
 	//check pending state
 	if *taskDefinition.Status.State == statePending {
 		return r.checkPending(ctx, req, taskDefinition, task)
 	}
 
-	//run cecks
+	//run checks
 	ConditionChecks := condition.ConditionChecks{
 		Client: r.Client,
 		Log:    r.Log,
@@ -159,7 +161,7 @@ func (r *TaskDefinitionReconciler) createOrUpdateTask(ctx context.Context, taskD
 			break
 		}
 	}
-
+	//TODO check if something is still in deletion
 	//create task if not found
 	if task == nil {
 		task = &teachv1alpha1.Task{
@@ -231,6 +233,5 @@ func (r *TaskDefinitionReconciler) setState(ctx context.Context, state string, o
 func (r *TaskDefinitionReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&teachv1alpha1.TaskDefinition{}).
-		WithOptions(controller.Options{MaxConcurrentReconciles: 10}).
 		Complete(r)
 }
