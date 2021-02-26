@@ -16,17 +16,19 @@ package controllers
 
 import (
 	"context"
+	"fmt"
 	"github.com/go-logr/logr"
-	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/client-go/tools/record"
 	teachv1alpha1 "kubeteach/api/v1alpha1"
 	"kubeteach/controllers/condition"
 	"reflect"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/controller"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 	"time"
 )
@@ -35,14 +37,15 @@ const (
 	stateActive     = "active"
 	stateSuccessful = "successful"
 	statePending    = "pending"
-	requeueTime     = time.Duration(2) * time.Second
+	requeueTime     = time.Duration(5) * time.Second
 )
 
 // TaskDefinitionReconciler reconciles a TaskDefinition object
 type TaskDefinitionReconciler struct {
 	client.Client
-	Log    logr.Logger
-	Scheme *runtime.Scheme
+	Log      logr.Logger
+	Scheme   *runtime.Scheme
+	Recorder record.EventRecorder
 }
 
 // +kubebuilder:rbac:groups=kubeteach.geberl.io,resources=taskdefinitions,verbs=get;list;watch;create;update;patch;delete
@@ -82,82 +85,68 @@ func (r *TaskDefinitionReconciler) Reconcile(req ctrl.Request) (ctrl.Result, err
 	}
 
 	//create or update Task
-	taskMeta, err := r.createOrUpdateTask(ctx, &taskDefinition)
+	task, err := r.createOrUpdateTask(ctx, &taskDefinition)
 
 	//check pending state
 	if *taskDefinition.Status.State == statePending {
-		if taskDefinition.Spec.RequiredTaskName != nil {
-			reqTask := teachv1alpha1.TaskDefinition{}
-			err = r.Client.Get(ctx, client.ObjectKey{Name: *taskDefinition.Spec.RequiredTaskName, Namespace: req.Namespace}, &reqTask)
-			if err != nil {
-				if errors.IsNotFound(err) {
-					return ctrl.Result{}, nil
-				}
-				return ctrl.Result{}, err
-			}
-			if *reqTask.Status.State == stateSuccessful {
-				err = r.setState(ctx, stateActive, &taskDefinition.ObjectMeta, &taskMeta)
-				if err != nil {
-					return reconcile.Result{}, err
-				}
-			}
-		} else {
-			err = r.setState(ctx, stateActive, &taskDefinition.ObjectMeta, &taskMeta)
-			if err != nil {
-				return reconcile.Result{}, err
-			}
-		}
-		return ctrl.Result{RequeueAfter: requeueTime}, nil
+		return r.checkPending(ctx, req, taskDefinition, task)
 	}
 
+	//run cecks
 	ConditionChecks := condition.ConditionChecks{
 		Client: r.Client,
 		Log:    r.Log,
 	}
-
 	status, err := ConditionChecks.ApplyChecks(ctx, taskDefinition.Spec.TaskConditions)
 	if err != nil {
+		r.Recorder.Event(&taskDefinition, "Warning", "Error", fmt.Sprintf("Conditions apply fail with error: %v", err))
 		return ctrl.Result{}, err
 	}
 
+	// check status
 	if status {
-		err = r.setState(ctx, stateSuccessful, &taskDefinition.ObjectMeta, &taskMeta)
+		err = r.setState(ctx, stateSuccessful, &taskDefinition.ObjectMeta, &task.ObjectMeta)
 		if err != nil {
 			return reconcile.Result{}, err
 		}
-		err = r.Client.Create(ctx, &v1.Event{
-			ObjectMeta: metav1.ObjectMeta{
-				Namespace:    taskMeta.Namespace,
-				GenerateName: taskMeta.Name,
-			},
-			InvolvedObject: v1.ObjectReference{
-				Kind:       "Task",
-				Namespace:  taskMeta.Namespace,
-				Name:       taskMeta.Name,
-				UID:        taskMeta.UID,
-				APIVersion: "v1",
-			},
-			Reason:              "success",
-			Message:             "Task successfully done",
-			Source:              v1.EventSource{Component: "kubeteach"},
-			Type:                v1.EventTypeNormal,
-			FirstTimestamp:      metav1.Now(),
-			Series:              nil,
-			Action:              "",
-			Related:             nil,
-			ReportingController: "",
-			ReportingInstance:   "",
-		})
-		if err != nil {
-			return ctrl.Result{}, err
-		}
+		r.Recorder.Event(&task, "Normal", "Successful", "Task is successfully completed")
 		return ctrl.Result{}, nil
 	}
 
+	r.Recorder.Event(&task, "Normal", "Active", "Task is not completed")
 	return ctrl.Result{RequeueAfter: time.Duration(5) * time.Second}, nil
 }
 
-func (r *TaskDefinitionReconciler) createOrUpdateTask(ctx context.Context, taskDefinition *teachv1alpha1.TaskDefinition) (metav1.ObjectMeta, error) {
+func (r *TaskDefinitionReconciler) checkPending(ctx context.Context, req ctrl.Request, taskDefinition teachv1alpha1.TaskDefinition, task teachv1alpha1.Task) (ctrl.Result, error) {
+	if taskDefinition.Spec.RequiredTaskName != nil {
+		reqTask := teachv1alpha1.TaskDefinition{}
+		err := r.Client.Get(ctx, client.ObjectKey{Name: *taskDefinition.Spec.RequiredTaskName, Namespace: req.Namespace}, &reqTask)
+		if err != nil {
+			if errors.IsNotFound(err) {
+				return ctrl.Result{}, nil
+			}
+			return ctrl.Result{}, err
+		}
+		if *reqTask.Status.State == stateSuccessful {
+			r.Recorder.Event(&task, "Normal", "Active", "Pre required task is now successfull, task is now active")
+			err = r.setState(ctx, stateActive, &taskDefinition.ObjectMeta, &task.ObjectMeta)
+			if err != nil {
+				return reconcile.Result{}, err
+			}
+		}
+		r.Recorder.Event(&task, "Normal", "Pending", "Task is in pending, do task: "+*taskDefinition.Spec.RequiredTaskName+" before")
+		return ctrl.Result{RequeueAfter: requeueTime}, nil
+	} else {
+		r.Recorder.Event(&task, "Normal", "Active", "Task has no pre required task, task is now active")
+		err := r.setState(ctx, stateActive, &taskDefinition.ObjectMeta, &task.ObjectMeta)
+		if err != nil {
+			return reconcile.Result{}, err
+		}
+	}
+	return ctrl.Result{RequeueAfter: requeueTime}, nil
+}
+
+func (r *TaskDefinitionReconciler) createOrUpdateTask(ctx context.Context, taskDefinition *teachv1alpha1.TaskDefinition) (teachv1alpha1.Task, error) {
 
 	taskList := teachv1alpha1.TaskList{}
 	r.Client.List(ctx, &taskList)
@@ -192,9 +181,11 @@ func (r *TaskDefinitionReconciler) createOrUpdateTask(ctx context.Context, taskD
 		}
 		err := r.Client.Create(ctx, task)
 		if err != nil {
-			return metav1.ObjectMeta{}, err
+			return teachv1alpha1.Task{}, err
 		}
-		return task.ObjectMeta, nil
+		r.Recorder.Event(taskDefinition, "Normal", "Created", "Task created")
+
+		return *task, nil
 	}
 
 	//sync spec
@@ -202,18 +193,21 @@ func (r *TaskDefinitionReconciler) createOrUpdateTask(ctx context.Context, taskD
 		task.Spec = taskDefinition.Spec.TaskSpec
 		err := r.Update(ctx, task)
 		if err != nil {
-			return metav1.ObjectMeta{}, err
+			return teachv1alpha1.Task{}, err
 		}
+		r.Recorder.Event(taskDefinition, "Normal", "Update", "Task updated")
 	}
 
 	//sync status
-	if taskDefinition.Status.State != task.Status.State {
-		patch := []byte(`{"status":{"state":"` + *taskDefinition.Status.State + `"}}`)
-		if err := r.Client.Patch(ctx, task, client.RawPatch(types.MergePatchType, patch)); err != nil {
-			return metav1.ObjectMeta{}, err
+	if *taskDefinition.Status.State != *task.Status.State {
+		patch := `{"status":{"state":"` + *taskDefinition.Status.State + `"}}`
+		if err := r.setState(ctx, patch, nil, &task.ObjectMeta); err != nil {
+			return teachv1alpha1.Task{}, err
 		}
+		r.Recorder.Event(taskDefinition, "Normal", "Update", "Task Status updated")
+
 	}
-	return task.ObjectMeta, nil
+	return *task, nil
 }
 
 func (r *TaskDefinitionReconciler) setState(ctx context.Context, state string, objectTaskDefinition, objectTask *metav1.ObjectMeta) error {
@@ -236,5 +230,6 @@ func (r *TaskDefinitionReconciler) setState(ctx context.Context, state string, o
 func (r *TaskDefinitionReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&teachv1alpha1.TaskDefinition{}).
+		WithOptions(controller.Options{MaxConcurrentReconciles: 10}).
 		Complete(r)
 }
