@@ -19,6 +19,7 @@ package main
 import (
 	"flag"
 	"os"
+	"time"
 
 	"k8s.io/apimachinery/pkg/runtime"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
@@ -47,11 +48,13 @@ func main() {
 	var metricsAddr string
 	var enableLeaderElection bool
 	var debugMode bool
+	var requeueTime int
 	flag.StringVar(&metricsAddr, "metrics-addr", ":8080", "The address the metric endpoint binds to.")
 	flag.BoolVar(&enableLeaderElection, "enable-leader-election", false,
 		"Enable leader election for controller manager. "+
 			"Enabling this will ensure there is only one active controller manager.")
 	flag.BoolVar(&debugMode, "debug", false, "Enables debug logging mode")
+	flag.IntVar(&requeueTime, "requeue-time", 5, "sets the requeue time in seconds for active and pending tasks")
 	flag.Parse()
 
 	ctrl.SetLogger(zap.New(zap.UseDevMode(debugMode)))
@@ -69,10 +72,11 @@ func main() {
 	}
 
 	if err = (&controllers.TaskDefinitionReconciler{
-		Client:   mgr.GetClient(),
-		Log:      ctrl.Log.WithName("controllers").WithName("TaskDefinition"),
-		Scheme:   mgr.GetScheme(),
-		Recorder: mgr.GetEventRecorderFor("Task"),
+		Client:      mgr.GetClient(),
+		Log:         ctrl.Log.WithName("controllers").WithName("TaskDefinition"),
+		Scheme:      mgr.GetScheme(),
+		Recorder:    mgr.GetEventRecorderFor("Task"),
+		RequeueTime: time.Duration(requeueTime) * time.Second,
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "TaskDefinition")
 		os.Exit(1)

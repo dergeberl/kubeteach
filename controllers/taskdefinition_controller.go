@@ -37,15 +37,16 @@ const (
 	stateActive     = "active"
 	stateSuccessful = "successful"
 	statePending    = "pending"
-	requeueTime     = time.Duration(5) * time.Second
+	//requeueTime     = time.Duration(5) * time.Second
 )
 
 // TaskDefinitionReconciler reconciles a TaskDefinition object
 type TaskDefinitionReconciler struct {
 	client.Client
-	Log      logr.Logger
-	Scheme   *runtime.Scheme
-	Recorder record.EventRecorder
+	Log         logr.Logger
+	Scheme      *runtime.Scheme
+	Recorder    record.EventRecorder
+	RequeueTime time.Duration
 }
 
 // +kubebuilder:rbac:groups=kubeteach.geberl.io,resources=taskdefinitions,verbs=get;list;watch;create;update;patch;delete
@@ -114,7 +115,7 @@ func (r *TaskDefinitionReconciler) Reconcile(req ctrl.Request) (ctrl.Result, err
 	}
 
 	r.Recorder.Event(&task, "Normal", "Active", "Task is not completed")
-	return ctrl.Result{RequeueAfter: time.Duration(5) * time.Second}, nil
+	return ctrl.Result{RequeueAfter: r.RequeueTime}, nil
 }
 
 func (r *TaskDefinitionReconciler) checkPending(ctx context.Context, req ctrl.Request, taskDefinition teachv1alpha1.TaskDefinition, task teachv1alpha1.Task) (ctrl.Result, error) {
@@ -135,7 +136,7 @@ func (r *TaskDefinitionReconciler) checkPending(ctx context.Context, req ctrl.Re
 			}
 		}
 		r.Recorder.Event(&task, "Normal", "Pending", "Task is in pending, do task: "+*taskDefinition.Spec.RequiredTaskName+" before")
-		return ctrl.Result{RequeueAfter: requeueTime}, nil
+		return ctrl.Result{RequeueAfter: r.RequeueTime}, nil
 	} else {
 		r.Recorder.Event(&task, "Normal", "Active", "Task has no pre required task, task is now active")
 		err := r.setState(ctx, stateActive, &taskDefinition.ObjectMeta, &task.ObjectMeta)
@@ -143,7 +144,7 @@ func (r *TaskDefinitionReconciler) checkPending(ctx context.Context, req ctrl.Re
 			return reconcile.Result{}, err
 		}
 	}
-	return ctrl.Result{RequeueAfter: requeueTime}, nil
+	return ctrl.Result{RequeueAfter: r.RequeueTime}, nil
 }
 
 func (r *TaskDefinitionReconciler) createOrUpdateTask(ctx context.Context, taskDefinition *teachv1alpha1.TaskDefinition) (teachv1alpha1.Task, error) {
