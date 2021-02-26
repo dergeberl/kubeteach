@@ -192,7 +192,7 @@ func (r *TaskDefinitionReconciler) createOrUpdateTask(ctx context.Context, taskD
 				}},
 			},
 			Spec:   taskDefinition.Spec.TaskSpec,
-			Status: kubeteachv1.TaskStatus{State: &taskDefinition.Status.State},
+			Status: kubeteachv1.TaskStatus{State: taskDefinition.Status.State},
 		}
 		err := r.Client.Create(ctx, task)
 		if err != nil {
@@ -211,7 +211,7 @@ func (r *TaskDefinitionReconciler) createOrUpdateTask(ctx context.Context, taskD
 	}
 
 	//sync status
-	if taskDefinition.Status.State != *task.Status.State {
+	if taskDefinition.Status.State != task.Status.State {
 		patch := []byte(`{"status":{"state":"` + taskDefinition.Status.State + `"}}`)
 		if err := r.Client.Patch(ctx, task, client.RawPatch(types.MergePatchType, patch)); err != nil {
 			return metav1.ObjectMeta{}, err

@@ -18,22 +18,6 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-// TaskSpec defines the desired state of Task
-type TaskSpec struct {
-	// Title is the title of the task
-	Title string `json:"title,omitempty"`
-	// Description describes the task
-	Description string `json:"description,omitempty"`
-	// +optional
-	// HelpURL is a URL that can help to solve this Task
-	HelpURL string `json:"helpURL,omitempty"`
-}
-
-// TaskStatus defines the observed state of Task
-type TaskStatus struct {
-	State *string `json:"state,omitempty"`
-}
-
 // +kubebuilder:object:root=true
 // +kubebuilder:printcolumn:name="Title",type=string,JSONPath=`.spec.title`
 // +kubebuilder:printcolumn:name="Status",type=string,JSONPath=`.status.state`
@@ -54,6 +38,24 @@ type TaskList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`
 	Items           []Task `json:"items"`
+}
+
+// TaskSpec defines the desired state of Task
+type TaskSpec struct {
+	// Title is the title of the task
+	Title string `json:"title,omitempty"`
+	// Description describes the task
+	Description string `json:"description,omitempty"`
+	// HelpURL is a URL that can help to solve this Task
+	// +optional
+	HelpURL string `json:"helpURL,omitempty"`
+}
+
+// TaskStatus defines the observed state of Task
+type TaskStatus struct {
+	// State represent the status of this task
+	// Can be pending, active, successful
+	State string `json:"state,omitempty"`
 }
 
 func init() {

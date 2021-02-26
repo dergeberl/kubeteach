@@ -41,33 +41,62 @@ spec:
             description: TaskDefinitionSpec defines the desired state of TaskDefinition
             properties:
               requiredTaskName:
+                description: RequiredTaskName TODO
                 type: string
               taskConditions:
+                description: TaskConditions TODO
                 items:
+                  description: TaskCondition TODO
                   properties:
                     apiGroup:
+                      description: ApiGroup is used of the object that should be match
+                        this conditions
                       type: string
                     apiVersion:
+                      description: ApiVersion is used of the object that should be
+                        match this conditions
                       type: string
                     kind:
+                      description: Kind is used of the object that should be match
+                        this conditions
                       type: string
                     matchAll:
+                      description: MatchAll it set to true, ResourceCondition must
+                        be successful on all objects of this type Useful to check
+                        if a object is deleted
                       type: boolean
                     resourceCondition:
+                      description: ResourceCondition describe the conditions that
+                        must be apply to success this TaskCondition
                       items:
+                        description: ResourceCondition TODO
                         properties:
                           field:
+                            description: 'Field is the json search string for this
+                              condition. Example: metadata.name For more details have
+                              a look into gjson docs: https://github.com/tidwall/gjson'
                             type: string
                           operator:
+                            description: Operator is for the condition. Valid operators
+                              are eq, neq, lt, gt, contains.
+                            enum:
+                            - eq
+                            - neq
+                            - lt
+                            - gt
+                            - contains
                             type: string
                           value:
+                            description: Value contains the value which the operater
+                              must match. Must be a string but for lt and gt only
+                              numbers are allowed in this string
                             type: string
                         type: object
                       type: array
                   type: object
                 type: array
               taskSpec:
-                description: TaskSpec defines the desired state of Task
+                description: TaskSpec TODO
                 properties:
                   description:
                     description: Description describes the task
@@ -84,6 +113,8 @@ spec:
             description: TaskDefinitionStatus defines the observed state of TaskDefinition
             properties:
               state:
+                description: State represent the status of this task Can be pending,
+                  active, successful
                 type: string
             required:
             - state
@@ -91,7 +122,8 @@ spec:
         type: object
     served: true
     storage: true
-    subresources: {}
+    subresources:
+      status: {}
 status:
   acceptedNames:
     kind: ""
