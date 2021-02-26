@@ -23,7 +23,7 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	kubeteachv1 "kubeteach/api/v1"
-	"kubeteach/controllers/check"
+	"kubeteach/controllers/condition"
 	"reflect"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -67,23 +67,14 @@ func (r *TaskDefinitionReconciler) Reconcile(req ctrl.Request) (ctrl.Result, err
 		return ctrl.Result{}, nil
 	}
 
-	//TODO kann weg
-	//if taskDefinition.Status.State == nil {
-	//	if taskDefinition.Spec.RequiredTaskName != nil {
-	//		err = r.setState(ctx, statePending, &taskDefinition.ObjectMeta, nil)
-	//		if err != nil {
-	//			return reconcile.Result{}, err
-	//		}
-	//	} else {
-	//		err = r.setState(ctx, stateActive, &taskDefinition.ObjectMeta, nil)
-	//		if err != nil {
-	//			return reconcile.Result{}, err
-	//		}
-	//	}
-	//	return ctrl.Result{}, nil
-	//}
+	if taskDefinition.Status.State == "" {
+		err = r.setState(ctx, statePending, &taskDefinition.ObjectMeta, nil)
+		if err != nil {
+			return reconcile.Result{}, err
+		}
+	}
 
-	//skip successfull objects
+	//skip successful objects
 	if taskDefinition.Status.State == stateSuccessful {
 		return ctrl.Result{}, nil
 	}
@@ -123,13 +114,12 @@ func (r *TaskDefinitionReconciler) Reconcile(req ctrl.Request) (ctrl.Result, err
 		return ctrl.Result{RequeueAfter: requeueTime}, nil
 	}
 
-	checkController := check.CheckController{
-		Client:     r.Client,
-		Log:        r.Log,
-		CheckItems: taskDefinition.Spec.TaskConditions,
+	ConditionChecks := condition.ConditionChecks{
+		Client: r.Client,
+		Log:    r.Log,
 	}
 
-	status, err := checkController.ApplyChecks(ctx)
+	status, err := ConditionChecks.ApplyChecks(ctx, taskDefinition.Spec.TaskConditions)
 	if err != nil {
 		return ctrl.Result{}, err
 	}
