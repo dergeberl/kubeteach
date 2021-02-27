@@ -20,8 +20,11 @@ import (
 	"github.com/go-logr/logr"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/runtime/serializer"
 	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/client-go/tools/record"
 	teachv1alpha1 "kubeteach/api/v1alpha1"
 	"kubeteach/controllers/condition"
@@ -36,6 +39,7 @@ const (
 	stateActive     = "active"
 	stateSuccessful = "successful"
 	statePending    = "pending"
+	statePreApply   = "preApply"
 	//requeueTime     = time.Duration(5) * time.Second
 )
 
@@ -94,6 +98,15 @@ func (r *TaskDefinitionReconciler) Reconcile(req ctrl.Request) (ctrl.Result, err
 		return r.checkPending(ctx, req, taskDefinition, task)
 	}
 
+	// check for preApply
+	if *taskDefinition.Status.State == statePreApply {
+		_, err = r.preApplyObjects(ctx, taskDefinition)
+		if err != nil {
+			return ctrl.Result{}, err
+		}
+		return ctrl.Result{Requeue: true}, nil
+	}
+
 	//run checks
 	ConditionChecks := condition.ConditionChecks{
 		Client: r.Client,
@@ -131,7 +144,7 @@ func (r *TaskDefinitionReconciler) checkPending(ctx context.Context, req ctrl.Re
 		}
 		if *reqTask.Status.State == stateSuccessful {
 			r.Recorder.Event(&task, "Normal", "Active", "Pre required task is now successfull, task is now active")
-			err = r.setState(ctx, stateActive, taskDefinition.DeepCopyObject(), task.DeepCopyObject())
+			err = r.setState(ctx, statePreApply, taskDefinition.DeepCopyObject(), task.DeepCopyObject())
 			if err != nil {
 				return reconcile.Result{}, err
 			}
@@ -141,7 +154,7 @@ func (r *TaskDefinitionReconciler) checkPending(ctx context.Context, req ctrl.Re
 		return ctrl.Result{RequeueAfter: r.RequeueTime}, nil
 	} else {
 		r.Recorder.Event(&task, "Normal", "Active", "Task has no pre required task, task is now active")
-		err := r.setState(ctx, stateActive, taskDefinition.DeepCopyObject(), task.DeepCopyObject())
+		err := r.setState(ctx, statePreApply, taskDefinition.DeepCopyObject(), task.DeepCopyObject())
 		if err != nil {
 			return reconcile.Result{}, err
 		}
@@ -149,15 +162,42 @@ func (r *TaskDefinitionReconciler) checkPending(ctx context.Context, req ctrl.Re
 	}
 }
 
-func (r *TaskDefinitionReconciler) preApplyObjects(ctx context.Context, req ctrl.Request, taskDefinition teachv1alpha1.TaskDefinition) (ctrl.Result, error) {
+func (r *TaskDefinitionReconciler) preApplyObjects(ctx context.Context, taskDefinition teachv1alpha1.TaskDefinition) (ctrl.Result, error) {
+	if taskDefinition.Spec.PreApply == nil || len(*taskDefinition.Spec.PreApply) == 0 {
+		err := r.setState(ctx, stateActive, taskDefinition.DeepCopyObject())
+		if err != nil {
+			return ctrl.Result{}, err
+		}
+		return ctrl.Result{Requeue: true}, nil
+	}
+	for _, preApplyObeject := range *taskDefinition.Spec.PreApply {
+		var obj unstructured.Unstructured
+		decoder := serializer.NewCodecFactory(scheme.Scheme).UniversalDecoder()
+		err := runtime.DecodeInto(decoder, []byte(preApplyObeject), &obj)
+		fmt.Println(obj)
 
+		if err != nil {
+			return ctrl.Result{}, err
+		}
+		err = r.Client.Create(ctx, obj.DeepCopyObject())
+		if err != nil {
+			return ctrl.Result{}, err
+		}
+	}
+	err := r.setState(ctx, stateActive, taskDefinition.DeepCopyObject())
+	if err != nil {
+		return ctrl.Result{}, err
+	}
 	return ctrl.Result{RequeueAfter: r.RequeueTime}, nil
 }
 
 func (r *TaskDefinitionReconciler) createOrUpdateTask(ctx context.Context, taskDefinition *teachv1alpha1.TaskDefinition) (teachv1alpha1.Task, error) {
 
 	taskList := teachv1alpha1.TaskList{}
-	r.Client.List(ctx, &taskList)
+	err := r.Client.List(ctx, &taskList)
+	if err != nil {
+		return teachv1alpha1.Task{}, err
+	}
 	var task *teachv1alpha1.Task
 	for _, taskTtem := range taskList.Items {
 		if taskTtem.OwnerReferences[0].UID == taskDefinition.UID {
