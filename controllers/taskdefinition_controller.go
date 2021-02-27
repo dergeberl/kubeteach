@@ -135,6 +135,7 @@ func (r *TaskDefinitionReconciler) checkPending(ctx context.Context, req ctrl.Re
 			if err != nil {
 				return reconcile.Result{}, err
 			}
+			return ctrl.Result{Requeue: true}, nil
 		}
 		r.Recorder.Event(&task, "Normal", "Pending", "Task is in pending, do task: "+*taskDefinition.Spec.RequiredTaskName+" before")
 		return ctrl.Result{RequeueAfter: r.RequeueTime}, nil
@@ -144,8 +145,8 @@ func (r *TaskDefinitionReconciler) checkPending(ctx context.Context, req ctrl.Re
 		if err != nil {
 			return reconcile.Result{}, err
 		}
+		return ctrl.Result{Requeue: true}, nil
 	}
-	return ctrl.Result{RequeueAfter: r.RequeueTime}, nil
 }
 
 func (r *TaskDefinitionReconciler) preApplyObjects(ctx context.Context, req ctrl.Request, taskDefinition teachv1alpha1.TaskDefinition) (ctrl.Result, error) {
