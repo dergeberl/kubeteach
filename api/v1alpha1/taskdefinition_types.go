@@ -53,12 +53,12 @@ type TaskDefinitionSpec struct {
 
 // TaskCondition TODO
 type TaskCondition struct {
-	// ApiVersion is used of the object that should be match this conditions
-	ApiVersion string `json:"apiVersion,omitempty"`
+	// APIVersion is used of the object that should be match this conditions
+	APIVersion string `json:"apiVersion,omitempty"`
 	// Kind is used of the object that should be match this conditions
 	Kind string `json:"kind,omitempty"`
-	// ApiGroup is used of the object that should be match this conditions
-	ApiGroup string `json:"apiGroup,omitempty"`
+	// APIGroup is used of the object that should be match this conditions
+	APIGroup string `json:"apiGroup,omitempty"`
 	// MatchAll it set to true, ResourceCondition must be successful on all objects of this type
 	// Useful to check if a object is deleted
 	MatchAll bool `json:"matchAll,omitempty"`

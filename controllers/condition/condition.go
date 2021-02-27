@@ -14,12 +14,14 @@ import (
 	"strings"
 )
 
-type ConditionChecks struct {
+// Checks is used for configuration of the condition checks
+type Checks struct {
 	Client client.Client
 	Log    logr.Logger
 }
 
-func (c *ConditionChecks) ApplyChecks(ctx context.Context, taskConditions []teachv1alpha1.TaskCondition) (bool, error) {
+// ApplyChecks apply all TaskConditions and returns true if all conditions are successful
+func (c *Checks) ApplyChecks(ctx context.Context, taskConditions []teachv1alpha1.TaskCondition) (bool, error) {
 	if len(taskConditions) < 1 {
 		return false, errors.New("no checks to apply")
 	}
@@ -35,7 +37,7 @@ func (c *ConditionChecks) ApplyChecks(ctx context.Context, taskConditions []teac
 	return true, nil
 }
 
-func (c *ConditionChecks) runTaskCondition(ctx context.Context, taskCondition teachv1alpha1.TaskCondition) (bool, error) {
+func (c *Checks) runTaskCondition(ctx context.Context, taskCondition teachv1alpha1.TaskCondition) (bool, error) {
 	u, err := c.getConditionObject(ctx, taskCondition)
 	if err != nil {
 		return false, err
@@ -60,7 +62,7 @@ func (c *ConditionChecks) runTaskCondition(ctx context.Context, taskCondition te
 	return false, nil
 }
 
-func (c *ConditionChecks) runResourceConditions(resourceConditions []teachv1alpha1.ResourceCondition, item unstructured.Unstructured) (bool, error) {
+func (c *Checks) runResourceConditions(resourceConditions []teachv1alpha1.ResourceCondition, item unstructured.Unstructured) (bool, error) {
 	if len(resourceConditions) == 0 {
 		return false, errors.New("no resourceCondition defined")
 	}
@@ -77,7 +79,7 @@ func (c *ConditionChecks) runResourceConditions(resourceConditions []teachv1alph
 	return true, nil
 }
 
-func (c *ConditionChecks) runResourceCondition(resourceCondition teachv1alpha1.ResourceCondition, json string) (bool, error) {
+func (c *Checks) runResourceCondition(resourceCondition teachv1alpha1.ResourceCondition, json string) (bool, error) {
 	value := gjson.Get(json, resourceCondition.Field)
 
 	switch resourceCondition.Operator {
@@ -123,11 +125,11 @@ func (c *ConditionChecks) runResourceCondition(resourceCondition teachv1alpha1.R
 	return false, nil
 }
 
-func (c *ConditionChecks) getConditionObject(ctx context.Context, taskCondition teachv1alpha1.TaskCondition) (*unstructured.UnstructuredList, error) {
+func (c *Checks) getConditionObject(ctx context.Context, taskCondition teachv1alpha1.TaskCondition) (*unstructured.UnstructuredList, error) {
 	u := unstructured.UnstructuredList{}
 	u.SetGroupVersionKind(schema.GroupVersionKind{
-		Group:   taskCondition.ApiGroup,
-		Version: taskCondition.ApiVersion,
+		Group:   taskCondition.APIGroup,
+		Version: taskCondition.APIVersion,
 		Kind:    taskCondition.Kind,
 	})
 

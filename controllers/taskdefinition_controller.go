@@ -55,6 +55,7 @@ type TaskDefinitionReconciler struct {
 // +kubebuilder:rbac:groups=kubeteach.geberl.io,resources=taskdefinitions,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=kubeteach.geberl.io,resources=taskdefinitions/status,verbs=get;update;patch
 
+// Reconcile handles all about taskdefinitions ans tasks
 func (r *TaskDefinitionReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	ctx := context.Background()
 	_ = r.Log.WithValues("taskdefinition", req.NamespacedName)
@@ -108,7 +109,7 @@ func (r *TaskDefinitionReconciler) Reconcile(req ctrl.Request) (ctrl.Result, err
 	}
 
 	//run checks
-	ConditionChecks := condition.ConditionChecks{
+	ConditionChecks := condition.Checks{
 		Client: r.Client,
 		Log:    r.Log,
 	}
@@ -152,14 +153,14 @@ func (r *TaskDefinitionReconciler) checkPending(ctx context.Context, req ctrl.Re
 		}
 		r.Recorder.Event(&task, "Normal", "Pending", "Task is in pending, do task: "+*taskDefinition.Spec.RequiredTaskName+" before")
 		return ctrl.Result{RequeueAfter: r.RequeueTime}, nil
-	} else {
-		r.Recorder.Event(&task, "Normal", "Active", "Task has no pre required task, task is now active")
-		err := r.setState(ctx, statePreApply, taskDefinition.DeepCopyObject(), task.DeepCopyObject())
-		if err != nil {
-			return reconcile.Result{}, err
-		}
-		return ctrl.Result{Requeue: true}, nil
 	}
+	r.Recorder.Event(&task, "Normal", "Active", "Task has no pre required task, task is now active")
+	err := r.setState(ctx, statePreApply, taskDefinition.DeepCopyObject(), task.DeepCopyObject())
+	if err != nil {
+		return reconcile.Result{}, err
+	}
+	return ctrl.Result{Requeue: true}, nil
+
 }
 
 func (r *TaskDefinitionReconciler) preApplyObjects(ctx context.Context, taskDefinition teachv1alpha1.TaskDefinition) (ctrl.Result, error) {
@@ -271,6 +272,7 @@ func (r *TaskDefinitionReconciler) setState(ctx context.Context, state string, o
 	return nil
 }
 
+// SetupWithManager is used by kubebuilder to init the controller loop
 func (r *TaskDefinitionReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&teachv1alpha1.TaskDefinition{}).

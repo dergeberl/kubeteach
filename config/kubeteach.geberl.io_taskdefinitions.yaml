@@ -54,11 +54,11 @@ spec:
                 description: TaskCondition TODO
                 properties:
                   apiGroup:
-                    description: ApiGroup is used of the object that should be match
+                    description: APIGroup is used of the object that should be match
                       this conditions
                     type: string
                   apiVersion:
-                    description: ApiVersion is used of the object that should be match
+                    description: APIVersion is used of the object that should be match
                       this conditions
                     type: string
                   kind:

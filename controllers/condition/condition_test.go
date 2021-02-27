@@ -31,7 +31,7 @@ var _ = Describe("TaskConditions ApplyChecks", func() {
 				if test.obj != nil {
 					Expect(k8sClient.Create(ctx, test.obj)).Should(Succeed())
 				}
-				c := ConditionChecks{Client: k8sClient, Log: nil}
+				c := Checks{Client: k8sClient, Log: nil}
 				got, gotErr := c.ApplyChecks(ctx, test.taskCondition)
 				Expect(got).Should(test.state)
 				Expect(gotErr).Should(test.err)

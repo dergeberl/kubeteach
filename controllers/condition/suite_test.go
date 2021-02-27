@@ -45,7 +45,7 @@ func TestAPIs(t *testing.T) {
 	RegisterFailHandler(Fail)
 
 	RunSpecsWithDefaultAndCustomReporters(t,
-		"ConditionChecks Suite",
+		"Checks Suite",
 		[]Reporter{printer.NewlineReporter{}})
 }
 
