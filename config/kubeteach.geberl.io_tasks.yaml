@@ -22,7 +22,8 @@ spec:
     plural: tasks
     singular: task
   scope: Namespaced
-  subresources: {}
+  subresources:
+    status: {}
   validation:
     openAPIV3Schema:
       description: Task is the Schema for the tasks API

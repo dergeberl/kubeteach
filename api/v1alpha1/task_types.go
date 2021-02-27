@@ -21,6 +21,7 @@ import (
 // +kubebuilder:object:root=true
 // +kubebuilder:printcolumn:name="Title",type=string,JSONPath=`.spec.title`
 // +kubebuilder:printcolumn:name="Status",type=string,JSONPath=`.status.state`
+// +kubebuilder:subresource:status
 
 // Task is the Schema for the tasks API
 type Task struct {

@@ -19,7 +19,8 @@ spec:
     plural: taskdefinitions
     singular: taskdefinition
   scope: Namespaced
-  subresources: {}
+  subresources:
+    status: {}
   validation:
     openAPIV3Schema:
       description: TaskDefinition is the Schema for the taskdefinitions API
@@ -39,6 +40,11 @@ spec:
         spec:
           description: TaskDefinitionSpec defines the desired state of TaskDefinition
           properties:
+            preApply:
+              description: PreApply TODO
+              items:
+                type: string
+              type: array
             requiredTaskName:
               description: RequiredTaskName TODO
               type: string

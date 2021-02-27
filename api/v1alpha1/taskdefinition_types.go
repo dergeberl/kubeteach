@@ -20,6 +20,7 @@ import (
 
 // +kubebuilder:object:root=true
 // +kubebuilder:printcolumn:name="Status",type=string,JSONPath=`.status.state`
+// +kubebuilder:subresource:status
 
 // TaskDefinition is the Schema for the taskdefinitions API
 type TaskDefinition struct {
@@ -46,6 +47,8 @@ type TaskDefinitionSpec struct {
 	TaskConditions []TaskCondition `json:"taskConditions,omitempty"`
 	// RequiredTaskName TODO
 	RequiredTaskName *string `json:"requiredTaskName,omitempty"`
+	// PreApply TODO
+	PreApply *[]string `json:"preApply,omitempty"`
 }
 
 // TaskCondition TODO

@@ -72,7 +72,7 @@ func (r *TaskDefinitionReconciler) Reconcile(req ctrl.Request) (ctrl.Result, err
 
 	// set status if empty
 	if taskDefinition.Status.State == nil {
-		err = r.setState(ctx, statePending, &taskDefinition.ObjectMeta, nil)
+		err = r.setState(ctx, statePending, taskDefinition.DeepCopyObject())
 		if err != nil {
 			return reconcile.Result{}, err
 		}
@@ -107,7 +107,7 @@ func (r *TaskDefinitionReconciler) Reconcile(req ctrl.Request) (ctrl.Result, err
 
 	// check status
 	if status {
-		err = r.setState(ctx, stateSuccessful, &taskDefinition.ObjectMeta, &task.ObjectMeta)
+		err = r.setState(ctx, stateSuccessful, taskDefinition.DeepCopyObject(), task.DeepCopyObject())
 		if err != nil {
 			return reconcile.Result{}, err
 		}
@@ -131,7 +131,7 @@ func (r *TaskDefinitionReconciler) checkPending(ctx context.Context, req ctrl.Re
 		}
 		if *reqTask.Status.State == stateSuccessful {
 			r.Recorder.Event(&task, "Normal", "Active", "Pre required task is now successfull, task is now active")
-			err = r.setState(ctx, stateActive, &taskDefinition.ObjectMeta, &task.ObjectMeta)
+			err = r.setState(ctx, stateActive, taskDefinition.DeepCopyObject(), task.DeepCopyObject())
 			if err != nil {
 				return reconcile.Result{}, err
 			}
@@ -140,11 +140,16 @@ func (r *TaskDefinitionReconciler) checkPending(ctx context.Context, req ctrl.Re
 		return ctrl.Result{RequeueAfter: r.RequeueTime}, nil
 	} else {
 		r.Recorder.Event(&task, "Normal", "Active", "Task has no pre required task, task is now active")
-		err := r.setState(ctx, stateActive, &taskDefinition.ObjectMeta, &task.ObjectMeta)
+		err := r.setState(ctx, stateActive, taskDefinition.DeepCopyObject(), task.DeepCopyObject())
 		if err != nil {
 			return reconcile.Result{}, err
 		}
 	}
+	return ctrl.Result{RequeueAfter: r.RequeueTime}, nil
+}
+
+func (r *TaskDefinitionReconciler) preApplyObjects(ctx context.Context, req ctrl.Request, taskDefinition teachv1alpha1.TaskDefinition) (ctrl.Result, error) {
+
 	return ctrl.Result{RequeueAfter: r.RequeueTime}, nil
 }
 
@@ -201,9 +206,8 @@ func (r *TaskDefinitionReconciler) createOrUpdateTask(ctx context.Context, taskD
 	}
 
 	//sync status
-	if *taskDefinition.Status.State != *task.Status.State {
-		patch := `{"status":{"state":"` + *taskDefinition.Status.State + `"}}`
-		if err := r.setState(ctx, patch, nil, &task.ObjectMeta); err != nil {
+	if taskDefinition.Status.State != task.Status.State {
+		if err := r.setState(ctx, *taskDefinition.Status.State, task.DeepCopyObject()); err != nil {
 			return teachv1alpha1.Task{}, err
 		}
 		r.Recorder.Event(taskDefinition, "Normal", "Update", "Task Status updated")
@@ -212,16 +216,13 @@ func (r *TaskDefinitionReconciler) createOrUpdateTask(ctx context.Context, taskD
 	return *task, nil
 }
 
-func (r *TaskDefinitionReconciler) setState(ctx context.Context, state string, objectTaskDefinition, objectTask *metav1.ObjectMeta) error {
+func (r *TaskDefinitionReconciler) setState(ctx context.Context, state string, objects ...runtime.Object) error {
 	patch := []byte(`{"status":{"state":"` + state + `"}}`)
-	if objectTaskDefinition != nil {
-		err := r.Client.Patch(ctx, &teachv1alpha1.TaskDefinition{ObjectMeta: *objectTaskDefinition}, client.RawPatch(types.MergePatchType, patch))
-		if err != nil {
-			return err
+	for _, object := range objects {
+		if object == nil {
+			continue
 		}
-	}
-	if objectTask != nil {
-		err := r.Client.Patch(ctx, &teachv1alpha1.Task{ObjectMeta: *objectTask}, client.RawPatch(types.MergePatchType, patch))
+		err := r.Status().Patch(ctx, object, client.RawPatch(types.MergePatchType, patch))
 		if err != nil {
 			return err
 		}
