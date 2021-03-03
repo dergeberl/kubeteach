@@ -37,7 +37,6 @@ const (
 	stateSuccessful = "successful"
 	statePending    = "pending"
 	stateError      = "error"
-	//requeueTime     = time.Duration(5) * time.Second
 )
 
 // TaskDefinitionReconciler reconciles a TaskDefinition object
@@ -49,11 +48,16 @@ type TaskDefinitionReconciler struct {
 	RequeueTime time.Duration
 }
 
+// nolint:lll
 // +kubebuilder:rbac:groups=kubeteach.geberl.io,resources=taskdefinitions,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=kubeteach.geberl.io,resources=taskdefinitions/status,verbs=get;update;patch
+// +kubebuilder:rbac:groups=kubeteach.geberl.io,resources=tasks,verbs=get;list;watch;create;update;patch;delete
+// +kubebuilder:rbac:groups=kubeteach.geberl.io,resources=tasks/status,verbs=get;update;patch
 
 // Reconcile handles all about taskdefinitions ans tasks
-func (r *TaskDefinitionReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
+func (r *TaskDefinitionReconciler) Reconcile(
+	req ctrl.Request,
+) (ctrl.Result, error) {
 	ctx := context.Background()
 	_ = r.Log.WithValues("taskdefinition", req.NamespacedName)
 
@@ -124,10 +128,17 @@ func (r *TaskDefinitionReconciler) Reconcile(req ctrl.Request) (ctrl.Result, err
 	return ctrl.Result{RequeueAfter: r.RequeueTime}, nil
 }
 
-func (r *TaskDefinitionReconciler) checkPending(ctx context.Context, req ctrl.Request, taskDefinition teachv1alpha1.TaskDefinition, task teachv1alpha1.Task) (ctrl.Result, error) {
+func (r *TaskDefinitionReconciler) checkPending(
+	ctx context.Context,
+	req ctrl.Request,
+	taskDefinition teachv1alpha1.TaskDefinition,
+	task teachv1alpha1.Task,
+) (ctrl.Result, error) {
 	if taskDefinition.Spec.RequiredTaskName != nil {
 		reqTask := teachv1alpha1.TaskDefinition{}
-		err := r.Client.Get(ctx, client.ObjectKey{Name: *taskDefinition.Spec.RequiredTaskName, Namespace: req.Namespace}, &reqTask)
+		err := r.Client.Get(ctx, client.ObjectKey{
+			Name:      *taskDefinition.Spec.RequiredTaskName,
+			Namespace: req.Namespace}, &reqTask)
 		if err != nil {
 			if errors.IsNotFound(err) {
 				return ctrl.Result{}, nil
@@ -153,7 +164,10 @@ func (r *TaskDefinitionReconciler) checkPending(ctx context.Context, req ctrl.Re
 
 }
 
-func (r *TaskDefinitionReconciler) createOrUpdateTask(ctx context.Context, taskDefinition *teachv1alpha1.TaskDefinition) (teachv1alpha1.Task, error) {
+func (r *TaskDefinitionReconciler) createOrUpdateTask(
+	ctx context.Context,
+	taskDefinition *teachv1alpha1.TaskDefinition,
+) (teachv1alpha1.Task, error) {
 
 	taskList := teachv1alpha1.TaskList{}
 	err := r.Client.List(ctx, &taskList)
@@ -168,7 +182,7 @@ func (r *TaskDefinitionReconciler) createOrUpdateTask(ctx context.Context, taskD
 			break
 		}
 	}
-	//TODO check if something is still in deletion
+
 	//create task if not found
 	if task == nil {
 		task = &teachv1alpha1.Task{
@@ -219,7 +233,11 @@ func (r *TaskDefinitionReconciler) createOrUpdateTask(ctx context.Context, taskD
 	return *task, nil
 }
 
-func (r *TaskDefinitionReconciler) setState(ctx context.Context, state string, objects ...runtime.Object) error {
+func (r *TaskDefinitionReconciler) setState(
+	ctx context.Context,
+	state string,
+	objects ...runtime.Object,
+) error {
 	patch := []byte(`{"status":{"state":"` + state + `"}}`)
 	for _, object := range objects {
 		err := r.Status().Patch(ctx, object, client.RawPatch(types.MergePatchType, patch))
@@ -230,7 +248,12 @@ func (r *TaskDefinitionReconciler) setState(ctx context.Context, state string, o
 	return nil
 }
 
-func (r *TaskDefinitionReconciler) errorRequeueAfter(ctx context.Context, err error, taskDefinition teachv1alpha1.TaskDefinition, objects ...runtime.Object) (ctrl.Result, error) {
+func (r *TaskDefinitionReconciler) errorRequeueAfter(
+	ctx context.Context,
+	err error,
+	taskDefinition teachv1alpha1.TaskDefinition,
+	objects ...runtime.Object,
+) (ctrl.Result, error) {
 	_ = r.setState(ctx, stateError, &taskDefinition)
 	_ = r.setState(ctx, stateError, objects...)
 	var errCount int

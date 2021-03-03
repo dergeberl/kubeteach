@@ -119,7 +119,7 @@ var _ = Describe("TaskConditions ApplyChecks", func() {
 			for _, test := range tests {
 				curTask := &teachv1alpha1.Task{}
 				Eventually(func() error {
-					err := k8sClient.Get(ctx, types.NamespacedName{Name: test.taskDefinition.Name, Namespace: test.taskDefinition.Namespace}, curTask)
+					err := k8sClient.Get(ctx, types.NamespacedName{Name: test.taskDefinition.Name, Namespace: test.taskDefinition.Namespace}, curTask) // nolint:lll
 					if err != nil {
 						return err
 					}
@@ -159,7 +159,7 @@ var _ = Describe("TaskConditions ApplyChecks", func() {
 			for _, test := range tests {
 				curTask := &teachv1alpha1.Task{}
 				Eventually(func() error {
-					err := k8sClient.Get(ctx, types.NamespacedName{Name: test.taskDefinition.Name, Namespace: test.taskDefinition.Namespace}, curTask)
+					err := k8sClient.Get(ctx, types.NamespacedName{Name: test.taskDefinition.Name, Namespace: test.taskDefinition.Namespace}, curTask) // nolint:lll
 					if err != nil {
 						return err
 					}

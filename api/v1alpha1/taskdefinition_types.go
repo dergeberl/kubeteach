@@ -85,9 +85,9 @@ type ResourceCondition struct {
 type TaskDefinitionStatus struct {
 	// State represent the status of this task
 	// Can be pending, active, successful, error
-	State      *string `json:"state"`
+	State *string `json:"state"`
 	// ErrorCount represent the count how often an error is occurred on this object.
-	ErrorCount *int    `json:"errorCount,omitempty"`
+	ErrorCount *int `json:"errorCount,omitempty"`
 }
 
 func init() {

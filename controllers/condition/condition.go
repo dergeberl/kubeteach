@@ -21,7 +21,10 @@ type Checks struct {
 }
 
 // ApplyChecks apply all TaskConditions and returns true if all conditions are successful
-func (c *Checks) ApplyChecks(ctx context.Context, taskConditions []teachv1alpha1.TaskCondition) (bool, error) {
+func (c *Checks) ApplyChecks(
+	ctx context.Context,
+	taskConditions []teachv1alpha1.TaskCondition,
+) (bool, error) {
 	if len(taskConditions) < 1 {
 		return false, errors.New("no checks to apply")
 	}
@@ -37,7 +40,10 @@ func (c *Checks) ApplyChecks(ctx context.Context, taskConditions []teachv1alpha1
 	return true, nil
 }
 
-func (c *Checks) runTaskCondition(ctx context.Context, taskCondition teachv1alpha1.TaskCondition) (bool, error) {
+func (c *Checks) runTaskCondition(
+	ctx context.Context,
+	taskCondition teachv1alpha1.TaskCondition,
+) (bool, error) {
 	u, err := c.getConditionObject(ctx, taskCondition)
 	if err != nil {
 		return false, err
@@ -62,7 +68,10 @@ func (c *Checks) runTaskCondition(ctx context.Context, taskCondition teachv1alph
 	return false, nil
 }
 
-func (c *Checks) runResourceConditions(resourceConditions []teachv1alpha1.ResourceCondition, item unstructured.Unstructured) (bool, error) {
+func (c *Checks) runResourceConditions(
+	resourceConditions []teachv1alpha1.ResourceCondition,
+	item unstructured.Unstructured,
+) (bool, error) {
 	if len(resourceConditions) == 0 {
 		return false, errors.New("no resourceCondition defined")
 	}
@@ -79,7 +88,10 @@ func (c *Checks) runResourceConditions(resourceConditions []teachv1alpha1.Resour
 	return true, nil
 }
 
-func (c *Checks) runResourceCondition(resourceCondition teachv1alpha1.ResourceCondition, json string) (bool, error) {
+func (c *Checks) runResourceCondition(
+	resourceCondition teachv1alpha1.ResourceCondition,
+	json string,
+) (bool, error) {
 	value := gjson.Get(json, resourceCondition.Field)
 
 	switch resourceCondition.Operator {
@@ -125,7 +137,10 @@ func (c *Checks) runResourceCondition(resourceCondition teachv1alpha1.ResourceCo
 	return false, nil
 }
 
-func (c *Checks) getConditionObject(ctx context.Context, taskCondition teachv1alpha1.TaskCondition) (*unstructured.UnstructuredList, error) {
+func (c *Checks) getConditionObject(
+	ctx context.Context,
+	taskCondition teachv1alpha1.TaskCondition,
+) (*unstructured.UnstructuredList, error) {
 	u := unstructured.UnstructuredList{}
 	u.SetGroupVersionKind(schema.GroupVersionKind{
 		Group:   taskCondition.APIGroup,

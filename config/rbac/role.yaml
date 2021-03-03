@@ -26,3 +26,23 @@ rules:
   - get
   - patch
   - update
+- apiGroups:
+  - kubeteach.geberl.io
+  resources:
+  - tasks
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - kubeteach.geberl.io
+  resources:
+  - tasks/status
+  verbs:
+  - get
+  - patch
+  - update
