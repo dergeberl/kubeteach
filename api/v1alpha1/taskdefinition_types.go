@@ -22,7 +22,7 @@ import (
 // +kubebuilder:printcolumn:name="Status",type=string,JSONPath=`.status.state`
 // +kubebuilder:subresource:status
 
-// TaskDefinition is the Schema for the taskdefinitions API
+// TaskDefinition is the Schema for the taskdefinitions API.
 type TaskDefinition struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
@@ -32,24 +32,25 @@ type TaskDefinition struct {
 
 // +kubebuilder:object:root=true
 
-// TaskDefinitionList contains a list of TaskDefinition
+// TaskDefinitionList contains a list of TaskDefinition.
 type TaskDefinitionList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`
 	Items           []TaskDefinition `json:"items"`
 }
 
-// TaskDefinitionSpec defines the desired state of TaskDefinition
+// TaskDefinitionSpec defines the desired state of TaskDefinition.
 type TaskDefinitionSpec struct {
-	// TaskSpec TODO
+	// TaskSpec represents spec of the task that is creating for this TaskDefinition.
 	TaskSpec TaskSpec `json:"taskSpec,omitempty"`
-	// TaskConditions TODO
+	// TaskConditions defines a list of conditions for a object that must be true to complete the task.
 	TaskConditions []TaskCondition `json:"taskConditions,omitempty"`
-	// RequiredTaskName TODO
+	// RequiredTaskName defines a TaskDefinition Name that have to be done before.
+	// Useful for example if in task1 a object should be created and in task2 the object should be deleted again.
 	RequiredTaskName *string `json:"requiredTaskName,omitempty"`
 }
 
-// TaskCondition TODO
+// TaskCondition defines a list of conditions for a object that must be true to complete the task.
 type TaskCondition struct {
 	// APIVersion is used of the object that should be match this conditions
 	APIVersion string `json:"apiVersion,omitempty"`
@@ -64,7 +65,7 @@ type TaskCondition struct {
 	ResourceCondition []ResourceCondition `json:"resourceCondition,omitempty"`
 }
 
-// ResourceCondition TODO
+// ResourceCondition describe the conditions that must be apply to success this TaskCondition
 type ResourceCondition struct {
 	// Field is the json search string for this condition.
 	// Example: metadata.name
@@ -83,8 +84,9 @@ type ResourceCondition struct {
 // TaskDefinitionStatus defines the observed state of TaskDefinition
 type TaskDefinitionStatus struct {
 	// State represent the status of this task
-	// Can be pending, active, successful
+	// Can be pending, active, successful, error
 	State      *string `json:"state"`
+	// ErrorCount represent the count how often an error is occurred on this object.
 	ErrorCount *int    `json:"errorCount,omitempty"`
 }
 
