@@ -20,11 +20,8 @@ import (
 	"github.com/go-logr/logr"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/apimachinery/pkg/runtime/serializer"
 	"k8s.io/apimachinery/pkg/types"
-	"k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/client-go/tools/record"
 	teachv1alpha1 "kubeteach/api/v1alpha1"
 	"kubeteach/controllers/condition"
@@ -39,7 +36,7 @@ const (
 	stateActive     = "active"
 	stateSuccessful = "successful"
 	statePending    = "pending"
-	statePreApply   = "preApply"
+	stateError      = "error"
 	//requeueTime     = time.Duration(5) * time.Second
 )
 
@@ -84,6 +81,11 @@ func (r *TaskDefinitionReconciler) Reconcile(req ctrl.Request) (ctrl.Result, err
 		return ctrl.Result{Requeue: true}, nil
 	}
 
+	// set state back to pending when it was error to try a reconcile
+	if *taskDefinition.Status.State == stateError {
+		*taskDefinition.Status.State = stateActive
+	}
+
 	//skip successful objects
 	if *taskDefinition.Status.State == stateSuccessful {
 		return ctrl.Result{}, nil
@@ -99,15 +101,6 @@ func (r *TaskDefinitionReconciler) Reconcile(req ctrl.Request) (ctrl.Result, err
 		return r.checkPending(ctx, req, taskDefinition, task)
 	}
 
-	// check for preApply
-	if *taskDefinition.Status.State == statePreApply {
-		_, err = r.preApplyObjects(ctx, taskDefinition)
-		if err != nil {
-			return ctrl.Result{}, err
-		}
-		return ctrl.Result{Requeue: true}, nil
-	}
-
 	//run checks
 	ConditionChecks := condition.Checks{
 		Client: r.Client,
@@ -116,7 +109,7 @@ func (r *TaskDefinitionReconciler) Reconcile(req ctrl.Request) (ctrl.Result, err
 	status, err := ConditionChecks.ApplyChecks(ctx, taskDefinition.Spec.TaskConditions)
 	if err != nil {
 		r.Recorder.Event(&taskDefinition, "Warning", "Error", fmt.Sprintf("Conditions apply fail with error: %v", err))
-		return ctrl.Result{}, err
+		return r.errorRequeueAfter(ctx, err, taskDefinition, &task)
 	}
 
 	// check status
@@ -128,8 +121,6 @@ func (r *TaskDefinitionReconciler) Reconcile(req ctrl.Request) (ctrl.Result, err
 		r.Recorder.Event(&task, "Normal", "Successful", "Task is successfully completed")
 		return ctrl.Result{}, nil
 	}
-
-	r.Recorder.Event(&task, "Normal", "Active", "Task is not completed")
 	return ctrl.Result{RequeueAfter: r.RequeueTime}, nil
 }
 
@@ -144,52 +135,22 @@ func (r *TaskDefinitionReconciler) checkPending(ctx context.Context, req ctrl.Re
 			return ctrl.Result{}, err
 		}
 		if *reqTask.Status.State == stateSuccessful {
-			r.Recorder.Event(&task, "Normal", "Active", "Pre required task is now successfull, task is now active")
-			err = r.setState(ctx, statePreApply, taskDefinition.DeepCopyObject(), task.DeepCopyObject())
+			r.Recorder.Event(&task, "Normal", "Active", "Pre required task is now successful, applying pre required objects")
+			err = r.setState(ctx, stateActive, taskDefinition.DeepCopyObject(), task.DeepCopyObject())
 			if err != nil {
 				return reconcile.Result{}, err
 			}
 			return ctrl.Result{Requeue: true}, nil
 		}
-		r.Recorder.Event(&task, "Normal", "Pending", "Task is in pending, do task: "+*taskDefinition.Spec.RequiredTaskName+" before")
 		return ctrl.Result{RequeueAfter: r.RequeueTime}, nil
 	}
-	r.Recorder.Event(&task, "Normal", "Active", "Task has no pre required task, task is now active")
-	err := r.setState(ctx, statePreApply, taskDefinition.DeepCopyObject(), task.DeepCopyObject())
+	r.Recorder.Event(&task, "Normal", "Active", "Task has no pre required task, applying pre required objects")
+	err := r.setState(ctx, stateActive, taskDefinition.DeepCopyObject(), task.DeepCopyObject())
 	if err != nil {
 		return reconcile.Result{}, err
 	}
 	return ctrl.Result{Requeue: true}, nil
 
-}
-
-func (r *TaskDefinitionReconciler) preApplyObjects(ctx context.Context, taskDefinition teachv1alpha1.TaskDefinition) (ctrl.Result, error) {
-	if taskDefinition.Spec.PreApply == nil || len(*taskDefinition.Spec.PreApply) == 0 {
-		err := r.setState(ctx, stateActive, taskDefinition.DeepCopyObject())
-		if err != nil {
-			return ctrl.Result{}, err
-		}
-		return ctrl.Result{Requeue: true}, nil
-	}
-	for _, preApplyObeject := range *taskDefinition.Spec.PreApply {
-		var obj unstructured.Unstructured
-		decoder := serializer.NewCodecFactory(scheme.Scheme).UniversalDecoder()
-		err := runtime.DecodeInto(decoder, []byte(preApplyObeject), &obj)
-		fmt.Println(obj)
-
-		if err != nil {
-			return ctrl.Result{}, err
-		}
-		err = r.Client.Create(ctx, obj.DeepCopyObject())
-		if err != nil {
-			return ctrl.Result{}, err
-		}
-	}
-	err := r.setState(ctx, stateActive, taskDefinition.DeepCopyObject())
-	if err != nil {
-		return ctrl.Result{}, err
-	}
-	return ctrl.Result{RequeueAfter: r.RequeueTime}, nil
 }
 
 func (r *TaskDefinitionReconciler) createOrUpdateTask(ctx context.Context, taskDefinition *teachv1alpha1.TaskDefinition) (teachv1alpha1.Task, error) {
@@ -261,15 +222,26 @@ func (r *TaskDefinitionReconciler) createOrUpdateTask(ctx context.Context, taskD
 func (r *TaskDefinitionReconciler) setState(ctx context.Context, state string, objects ...runtime.Object) error {
 	patch := []byte(`{"status":{"state":"` + state + `"}}`)
 	for _, object := range objects {
-		if object == nil {
-			continue
-		}
 		err := r.Status().Patch(ctx, object, client.RawPatch(types.MergePatchType, patch))
 		if err != nil {
 			return err
 		}
 	}
 	return nil
+}
+
+func (r *TaskDefinitionReconciler) errorRequeueAfter(ctx context.Context, err error, taskDefinition teachv1alpha1.TaskDefinition, objects ...runtime.Object) (ctrl.Result, error) {
+	_ = r.setState(ctx, stateError, &taskDefinition)
+	_ = r.setState(ctx, stateError, objects...)
+	var errCount int
+	if taskDefinition.Status.ErrorCount != nil {
+		errCount = *taskDefinition.Status.ErrorCount
+	}
+	errCount++
+	patch := []byte(`{"status":{"errorCount":"` + fmt.Sprint(errCount) + `"}}`)
+	_ = r.Status().Patch(ctx, &taskDefinition, client.RawPatch(types.MergePatchType, patch))
+
+	return ctrl.Result{RequeueAfter: time.Duration(errCount) * time.Second * 5}, err
 }
 
 // SetupWithManager is used by kubebuilder to init the controller loop

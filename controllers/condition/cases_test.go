@@ -17,6 +17,7 @@ type conditionTest struct {
 	err           types.GomegaMatcher
 }
 
+//nolint:lll
 var testCases = []conditionTest{
 	{
 		name:          "error - invalid objectType",

@@ -47,8 +47,6 @@ type TaskDefinitionSpec struct {
 	TaskConditions []TaskCondition `json:"taskConditions,omitempty"`
 	// RequiredTaskName TODO
 	RequiredTaskName *string `json:"requiredTaskName,omitempty"`
-	// PreApply TODO
-	PreApply *[]string `json:"preApply,omitempty"`
 }
 
 // TaskCondition TODO
@@ -86,7 +84,8 @@ type ResourceCondition struct {
 type TaskDefinitionStatus struct {
 	// State represent the status of this task
 	// Can be pending, active, successful
-	State *string `json:"state"`
+	State      *string `json:"state"`
+	ErrorCount *int    `json:"errorCount,omitempty"`
 }
 
 func init() {

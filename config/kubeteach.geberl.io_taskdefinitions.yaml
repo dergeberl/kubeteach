@@ -40,11 +40,6 @@ spec:
         spec:
           description: TaskDefinitionSpec defines the desired state of TaskDefinition
           properties:
-            preApply:
-              description: PreApply TODO
-              items:
-                type: string
-              type: array
             requiredTaskName:
               description: RequiredTaskName TODO
               type: string
