@@ -1,5 +1,5 @@
 domain: geberl.io
-repo: kubeteach
+repo: github.com/dergeberl/kubeteach
 resources:
 - group: kubeteach
   kind: TaskDefinition
