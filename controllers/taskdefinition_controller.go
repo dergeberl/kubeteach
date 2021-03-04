@@ -14,6 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
+//Package controllers is a package of kubeteach and used for reconcile logic of kubernetes CRDs
 package controllers
 
 import (
@@ -182,10 +183,10 @@ func (r *TaskDefinitionReconciler) createOrUpdateTask(
 		return teachv1alpha1.Task{}, err
 	}
 	var task *teachv1alpha1.Task
-	for _, taskTtem := range taskList.Items {
+	for i, taskTtem := range taskList.Items {
 		if taskTtem.OwnerReferences[0].UID == taskDefinition.UID {
 			//found task
-			task = &taskTtem
+			task = &taskList.Items[i]
 			break
 		}
 	}
@@ -235,7 +236,6 @@ func (r *TaskDefinitionReconciler) createOrUpdateTask(
 			return teachv1alpha1.Task{}, err
 		}
 		r.Recorder.Event(taskDefinition, "Normal", "Update", "Task Status updated")
-
 	}
 	return *task, nil
 }

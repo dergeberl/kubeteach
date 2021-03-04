@@ -14,6 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
+// Package condition is used in kubeteach to run condition checks against kubernetes api
 package condition
 
 import (

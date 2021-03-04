@@ -33,6 +33,10 @@ linters:
     - govet
     - ineffassign
     - lll
+    - gosec
+    - stylecheck
+    - unused
+    - whitespace
 
 issues:
   exclude-use-default: false
