@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-//Package controllers is a package of kubeteach and used for reconcile logic of kubernetes CRDs
+// Package controllers is a package of kubeteach and used for reconcile logic of kubernetes CRDs
 package controllers
 
 import (
@@ -51,7 +51,6 @@ type TaskDefinitionReconciler struct {
 	RequeueTime time.Duration
 }
 
-// nolint:lll
 // +kubebuilder:rbac:groups=kubeteach.geberl.io,resources=taskdefinitions,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=kubeteach.geberl.io,resources=taskdefinitions/status,verbs=get;update;patch
 // +kubebuilder:rbac:groups=kubeteach.geberl.io,resources=tasks,verbs=get;list;watch;create;update;patch;delete
@@ -186,13 +185,13 @@ func (r *TaskDefinitionReconciler) createOrUpdateTask(
 	var task *teachv1alpha1.Task
 	for i, taskTtem := range taskList.Items {
 		if taskTtem.OwnerReferences[0].UID == taskDefinition.UID {
-			//found task
+			// found task
 			task = &taskList.Items[i]
 			break
 		}
 	}
 
-	//create task if not found
+	// create task if not found
 	if task == nil {
 		task = &teachv1alpha1.Task{
 			TypeMeta: metav1.TypeMeta{
@@ -221,7 +220,7 @@ func (r *TaskDefinitionReconciler) createOrUpdateTask(
 		return *task, nil
 	}
 
-	//sync spec if task.Spec != taskDefinition.Spec.TaskSpec.
+	// sync spec if task.Spec != taskDefinition.Spec.TaskSpec.
 	if !reflect.DeepEqual(task.Spec, taskDefinition.Spec.TaskSpec) {
 		task.Spec = taskDefinition.Spec.TaskSpec
 		err := r.Update(ctx, task)
@@ -231,7 +230,7 @@ func (r *TaskDefinitionReconciler) createOrUpdateTask(
 		r.Recorder.Event(taskDefinition, "Normal", "Update", "Task updated")
 	}
 
-	//sync status if status.state is not the same
+	// sync status if status.state is not the same
 	if taskDefinition.Status.State != task.Status.State {
 		if err := r.setState(ctx, *taskDefinition.Status.State, task); err != nil {
 			return teachv1alpha1.Task{}, err

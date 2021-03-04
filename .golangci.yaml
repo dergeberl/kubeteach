@@ -8,43 +8,48 @@ run:
     - exercises
 
 linters-settings:
-  linters-settings.govet:
+  govet:
     check-shadowing: true
-
-  linters-settings.gocyclo:
+  gocyclo:
     min-complexity: 12.0
-
-  linters-settings.maligned:
+  maligned:
     suggest-new: true
-
-  linters-settings.goconst:
+  goconst:
     min-len: 3.0
     min-occurrences: 3.0
-
-  linters-settings.misspell:
+  misspell:
     locale: "US"
+  lll:
+    line-length: 140
+
 
 linters:
   enable:
-    - vet
-    - golint
-    - gofmt
+    - bodyclose
     - deadcode
-    - varcheck
-    - structcheck
-    - misspell
+    - depguard
     - errcheck
+    - gocritic
+    - gofmt
+    - goimports
+    - golint
+    - gomnd
+    - goprintffuncname
+    - gosec
     - gosimple
     - govet
     - ineffassign
     - lll
-    - gosec
+    - misspell
+    - noctx
+    - nolintlint
+    - rowserrcheck
+    - structcheck
     - stylecheck
     - unused
+    - varcheck
+    - vet
     - whitespace
-    - gomnd
-    - goimports
-    - noctx
 
 issues:
   exclude-use-default: false
