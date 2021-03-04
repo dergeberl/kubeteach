@@ -1,0 +1,119 @@
+---
+apiVersion: kubeteach.geberl.io/v1alpha1
+kind: TaskDefinition
+metadata:
+  name: task1
+spec:
+  taskSpec:
+    title: "Create namespace"
+    description: "Create a Namespace with the name kubeteach"
+  taskConditions:
+    - apiVersion: v1
+      kind: Namespace
+      name: "kubeteach"
+      resourceCondition:
+        - field: "metadata.name"
+          operator: "eq"
+          value: "kubeteach"
+---
+apiVersion: kubeteach.geberl.io/v1alpha1
+kind: TaskDefinition
+metadata:
+  name: task2
+spec:
+  taskSpec:
+    title: "Create pod"
+    description: "Create a pod in namespace kubeteach, the name pod1 and nginx:latest as image"
+  taskConditions:
+    - apiVersion: v1
+      kind: Pod
+      name: "kubeteach"
+      namespace: "kubeteach"
+      resourceCondition:
+        - field: "spec.containers.0.image"
+          operator: "eq"
+          value: "nginx:latest"
+---
+apiVersion: kubeteach.geberl.io/v1alpha1
+kind: TaskDefinition
+metadata:
+  name: task3
+spec:
+  taskSpec:
+    title: "Create deployment"
+    description: "Create a deployment with the name kubeteach-webserver in namespace kubeteach, 3 replicas and nginx:latest as image"
+  taskConditions:
+    - apiVersion: "apps/v1"
+      kind: Deployment
+      name: "kubeteach-webserver"
+      namespace: kubeteach
+      resourceCondition:
+        - field: "spec.template.spec.containers.0.image"
+          operator: "eq"
+          value: "nginx:latest"
+        - field: "spec.replicas"
+          operator: "eq"
+          value: "3"
+---
+apiVersion: kubeteach.geberl.io/v1alpha1
+kind: TaskDefinition
+metadata:
+  name: task4
+spec:
+  taskSpec:
+    title: "Scale deployment"
+    description: "Scale the deployment from task3 to 5 replicas"
+  requiredTaskName: task3
+  taskConditions:
+    - apiVersion: "apps/v1"
+      kind: Deployment
+      name: "kubeteach-webserver"
+      namespace: kubeteach
+      resourceCondition:
+        - field: "spec.template.spec.containers.0.image"
+          operator: "eq"
+          value: "nginx:latest"
+        - field: "spec.replicas"
+          operator: "eq"
+          value: "5"
+---
+apiVersion: kubeteach.geberl.io/v1alpha1
+kind: TaskDefinition
+metadata:
+  name: task5
+spec:
+  taskSpec:
+    title: "Add port to deployment"
+    description: "Add a containerPort to the deployment from task3"
+  requiredTaskName: task3
+  taskConditions:
+    - apiVersion: "apps/v1"
+      kind: Deployment
+      name: "kubeteach-webserver"
+      namespace: kubeteach
+      resourceCondition:
+        - field: "spec.template.spec.containers.0.ports.#(containerPort==80).protocol"
+          operator: "eq"
+          value: "TCP"
+---
+apiVersion: kubeteach.geberl.io/v1alpha1
+kind: TaskDefinition
+metadata:
+  name: task6
+spec:
+  taskSpec:
+    title: "Create service for deployment"
+    description: "Create a service of type NodePort to export port 80 of the deployment from task3"
+  requiredTaskName: task3
+  taskConditions:
+    - apiVersion: "v1"
+      kind: Service
+      name: "kubeteach-webserver"
+      namespace: kubeteach
+      resourceCondition:
+        - field: "spec.ports.#(port==80).protocol"
+          operator: "eq"
+          value: "TCP"
+        - field: "spec.type"
+          operator: "eq"
+          value: "NodePort"
