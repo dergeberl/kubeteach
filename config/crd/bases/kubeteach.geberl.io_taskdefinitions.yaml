@@ -106,8 +106,15 @@ spec:
                               numbers are allowed in this string. Value is ignored
                               by operator nil and notnil
                             type: string
+                        required:
+                        - field
+                        - operator
                         type: object
                       type: array
+                  required:
+                  - apiVersion
+                  - kind
+                  - name
                   type: object
                 type: array
               taskSpec:
@@ -123,21 +130,21 @@ spec:
                   title:
                     description: Title is the title of the task
                     type: string
+                required:
+                - description
+                - title
                 type: object
+            required:
+            - taskConditions
+            - taskSpec
             type: object
           status:
             description: TaskDefinitionStatus defines the observed state of TaskDefinition
             properties:
-              errorCount:
-                description: ErrorCount represent the count how often an error is
-                  occurred on this object.
-                type: integer
               state:
                 description: State represent the status of this task Can be pending,
                   active, successful, error
                 type: string
-            required:
-            - state
             type: object
         type: object
     served: true

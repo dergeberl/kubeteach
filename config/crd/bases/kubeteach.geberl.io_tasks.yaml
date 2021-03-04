@@ -52,6 +52,9 @@ spec:
               title:
                 description: Title is the title of the task
                 type: string
+            required:
+            - description
+            - title
             type: object
           status:
             description: TaskStatus defines the observed state of Task

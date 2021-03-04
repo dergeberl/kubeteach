@@ -44,9 +44,11 @@ type TaskList struct {
 // TaskSpec defines the desired state of Task
 type TaskSpec struct {
 	// Title is the title of the task
-	Title string `json:"title,omitempty"`
+	// +kubebuilder:validation:Required
+	Title string `json:"title"`
 	// Description describes the task
-	Description string `json:"description,omitempty"`
+	// +kubebuilder:validation:Required
+	Description string `json:"description"`
 	// HelpURL is a URL that can help to solve this Task
 	// +optional
 	HelpURL string `json:"helpURL,omitempty"`
