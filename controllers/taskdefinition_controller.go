@@ -36,7 +36,6 @@ const (
 	stateActive     = "active"
 	stateSuccessful = "successful"
 	statePending    = "pending"
-	stateError      = "error"
 )
 
 // TaskDefinitionReconciler reconciles a TaskDefinition object
@@ -54,58 +53,55 @@ type TaskDefinitionReconciler struct {
 // +kubebuilder:rbac:groups=kubeteach.geberl.io,resources=tasks,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=kubeteach.geberl.io,resources=tasks/status,verbs=get;update;patch
 
-// Reconcile handles all about taskdefinitions ans tasks
+// Reconcile handles all about taskdefinitions and tasks
 func (r *TaskDefinitionReconciler) Reconcile(
 	req ctrl.Request,
 ) (ctrl.Result, error) {
 	ctx := context.Background()
 	_ = r.Log.WithValues("taskdefinition", req.NamespacedName)
 
-	// get taskDefinition
+	// get current taskDefinition
 	taskDefinition := teachv1alpha1.TaskDefinition{}
 	err := r.Client.Get(ctx, req.NamespacedName, &taskDefinition)
 	if err != nil {
+		// ignore taskdefinitons that dose not exists
 		if errors.IsNotFound(err) {
 			return ctrl.Result{}, nil
 		}
 		return ctrl.Result{}, err
 	}
 
-	//skip delete objects
+	// skip delete objects
 	if !taskDefinition.ObjectMeta.DeletionTimestamp.IsZero() {
 		return ctrl.Result{}, nil
 	}
 
-	// set status if empty
+	// set status if empty to statePending
 	if taskDefinition.Status.State == nil {
-		err = r.setState(ctx, statePending, taskDefinition.DeepCopyObject())
+		err = r.setState(ctx, statePending, &taskDefinition)
 		if err != nil {
 			return reconcile.Result{}, err
 		}
 		return ctrl.Result{Requeue: true}, nil
 	}
 
-	// set state back to pending when it was error to try a reconcile
-	if *taskDefinition.Status.State == stateError {
-		*taskDefinition.Status.State = stateActive
-	}
-
-	//skip successful objects
+	// skip if status is already stateSuccessful
 	if *taskDefinition.Status.State == stateSuccessful {
 		return ctrl.Result{}, nil
 	}
 
-	//create or update Task
+	// create or update task for taskdefinition
 	task, err := r.createOrUpdateTask(ctx, &taskDefinition)
 	if err != nil {
 		return ctrl.Result{}, err
 	}
-	//check pending state
+
+	// check pending state
 	if *taskDefinition.Status.State == statePending {
-		return r.checkPending(ctx, req, taskDefinition, task)
+		return r.checkPending(ctx, req, &taskDefinition, &task)
 	}
 
-	//run checks
+	// run ConditionChecks checks
 	ConditionChecks := condition.Checks{
 		Client: r.Client,
 		Log:    r.Log,
@@ -113,12 +109,12 @@ func (r *TaskDefinitionReconciler) Reconcile(
 	status, err := ConditionChecks.ApplyChecks(ctx, taskDefinition.Spec.TaskConditions)
 	if err != nil {
 		r.Recorder.Event(&taskDefinition, "Warning", "Error", fmt.Sprintf("Conditions apply fail with error: %v", err))
-		return r.errorRequeueAfter(ctx, err, taskDefinition, &task)
+		return ctrl.Result{}, err
 	}
 
 	// check status
 	if status {
-		err = r.setState(ctx, stateSuccessful, taskDefinition.DeepCopyObject(), task.DeepCopyObject())
+		err = r.setState(ctx, stateSuccessful, &taskDefinition, &task)
 		if err != nil {
 			return reconcile.Result{}, err
 		}
@@ -128,47 +124,56 @@ func (r *TaskDefinitionReconciler) Reconcile(
 	return ctrl.Result{RequeueAfter: r.RequeueTime}, nil
 }
 
+// checkPending check if task is still in pending or the required task is already done
 func (r *TaskDefinitionReconciler) checkPending(
 	ctx context.Context,
 	req ctrl.Request,
-	taskDefinition teachv1alpha1.TaskDefinition,
-	task teachv1alpha1.Task,
+	taskDefinition *teachv1alpha1.TaskDefinition,
+	task *teachv1alpha1.Task,
 ) (ctrl.Result, error) {
 	if taskDefinition.Spec.RequiredTaskName != nil {
+		// get pre required taskdefiniton
 		reqTask := teachv1alpha1.TaskDefinition{}
 		err := r.Client.Get(ctx, client.ObjectKey{
 			Name:      *taskDefinition.Spec.RequiredTaskName,
-			Namespace: req.Namespace}, &reqTask)
+			Namespace: req.Namespace},
+			&reqTask)
 		if err != nil {
 			if errors.IsNotFound(err) {
 				return ctrl.Result{}, nil
 			}
 			return ctrl.Result{}, err
 		}
+
+		// set state to active if pre required task is successful
 		if *reqTask.Status.State == stateSuccessful {
-			r.Recorder.Event(&task, "Normal", "Active", "Pre required task is now successful, applying pre required objects")
-			err = r.setState(ctx, stateActive, taskDefinition.DeepCopyObject(), task.DeepCopyObject())
+			r.Recorder.Event(task, "Normal", "Active", "Pre required task is successful, task is now active")
+			err = r.setState(ctx, stateActive, taskDefinition, task)
 			if err != nil {
 				return reconcile.Result{}, err
 			}
 			return ctrl.Result{Requeue: true}, nil
 		}
+
+		// requeue after RequeueTime to check again
 		return ctrl.Result{RequeueAfter: r.RequeueTime}, nil
 	}
-	r.Recorder.Event(&task, "Normal", "Active", "Task has no pre required task, applying pre required objects")
-	err := r.setState(ctx, stateActive, taskDefinition.DeepCopyObject(), task.DeepCopyObject())
+
+	// set state to active no pre required task is defined
+	r.Recorder.Event(task, "Normal", "Active", "Task has no pre required task, task is now active")
+	err := r.setState(ctx, stateActive, taskDefinition, task)
 	if err != nil {
 		return reconcile.Result{}, err
 	}
 	return ctrl.Result{Requeue: true}, nil
-
 }
 
+// createOrUpdateTask creates task fot taskdefinition if needed and update task if something changed.
 func (r *TaskDefinitionReconciler) createOrUpdateTask(
 	ctx context.Context,
 	taskDefinition *teachv1alpha1.TaskDefinition,
 ) (teachv1alpha1.Task, error) {
-
+	// search if task already exists
 	taskList := teachv1alpha1.TaskList{}
 	err := r.Client.List(ctx, &taskList)
 	if err != nil {
@@ -203,7 +208,7 @@ func (r *TaskDefinitionReconciler) createOrUpdateTask(
 			Spec:   taskDefinition.Spec.TaskSpec,
 			Status: teachv1alpha1.TaskStatus{State: taskDefinition.Status.State},
 		}
-		err := r.Client.Create(ctx, task)
+		err = r.Client.Create(ctx, task)
 		if err != nil {
 			return teachv1alpha1.Task{}, err
 		}
@@ -212,7 +217,7 @@ func (r *TaskDefinitionReconciler) createOrUpdateTask(
 		return *task, nil
 	}
 
-	//sync spec
+	//sync spec if task.Spec != taskDefinition.Spec.TaskSpec.
 	if !reflect.DeepEqual(task.Spec, taskDefinition.Spec.TaskSpec) {
 		task.Spec = taskDefinition.Spec.TaskSpec
 		err := r.Update(ctx, task)
@@ -222,9 +227,9 @@ func (r *TaskDefinitionReconciler) createOrUpdateTask(
 		r.Recorder.Event(taskDefinition, "Normal", "Update", "Task updated")
 	}
 
-	//sync status
+	//sync status if status.state is not the same
 	if taskDefinition.Status.State != task.Status.State {
-		if err := r.setState(ctx, *taskDefinition.Status.State, task.DeepCopyObject()); err != nil {
+		if err := r.setState(ctx, *taskDefinition.Status.State, task); err != nil {
 			return teachv1alpha1.Task{}, err
 		}
 		r.Recorder.Event(taskDefinition, "Normal", "Update", "Task Status updated")
@@ -233,6 +238,7 @@ func (r *TaskDefinitionReconciler) createOrUpdateTask(
 	return *task, nil
 }
 
+// setState stets a the status.state field in all objects that are given
 func (r *TaskDefinitionReconciler) setState(
 	ctx context.Context,
 	state string,
@@ -246,25 +252,6 @@ func (r *TaskDefinitionReconciler) setState(
 		}
 	}
 	return nil
-}
-
-func (r *TaskDefinitionReconciler) errorRequeueAfter(
-	ctx context.Context,
-	err error,
-	taskDefinition teachv1alpha1.TaskDefinition,
-	objects ...runtime.Object,
-) (ctrl.Result, error) {
-	_ = r.setState(ctx, stateError, &taskDefinition)
-	_ = r.setState(ctx, stateError, objects...)
-	var errCount int
-	if taskDefinition.Status.ErrorCount != nil {
-		errCount = *taskDefinition.Status.ErrorCount
-	}
-	errCount++
-	patch := []byte(`{"status":{"errorCount":"` + fmt.Sprint(errCount) + `"}}`)
-	_ = r.Status().Patch(ctx, &taskDefinition, client.RawPatch(types.MergePatchType, patch))
-
-	return ctrl.Result{RequeueAfter: time.Duration(errCount) * time.Second * 5}, err
 }
 
 // SetupWithManager is used by kubebuilder to init the controller loop

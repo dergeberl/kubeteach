@@ -76,7 +76,3 @@ spec:
     title: "Delete Namespace"
     description: "Delete Namespace from task1 (kubeteach)"
   requiredTaskName: task1
-  taskConditions:
-    - apiVersion: v1
-      kind: Namespace
-      notExists: true

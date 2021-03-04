@@ -40,6 +40,7 @@ func (c *Checks) ApplyChecks(
 	return true, nil
 }
 
+// runTaskCondition runs once per TaskCondition to check if contentions are successful
 func (c *Checks) runTaskCondition(
 	ctx context.Context,
 	taskCondition teachv1alpha1.TaskCondition,
@@ -70,6 +71,8 @@ func (c *Checks) runTaskCondition(
 	return false, nil
 }
 
+// runResourceConditions runs all ResourceConditions to the given object
+// and returns true if all conditions are successful
 func (c *Checks) runResourceConditions(
 	resourceConditions []teachv1alpha1.ResourceCondition,
 	item unstructured.Unstructured,
@@ -90,6 +93,7 @@ func (c *Checks) runResourceConditions(
 	return true, nil
 }
 
+// runResourceCondition run one condition to a json object and return true if condition is successful
 func (c *Checks) runResourceCondition(
 	resourceCondition teachv1alpha1.ResourceCondition,
 	json string,
@@ -139,6 +143,7 @@ func (c *Checks) runResourceCondition(
 	return false, nil
 }
 
+// getConditionObject returns the object for a TaskCondition as a unstructured object
 func (c *Checks) getConditionObject(
 	ctx context.Context,
 	taskCondition teachv1alpha1.TaskCondition,
