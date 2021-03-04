@@ -62,7 +62,7 @@ func main() {
 	mgr, err := ctrl.NewManager(ctrl.GetConfigOrDie(), ctrl.Options{
 		Scheme:             scheme,
 		MetricsBindAddress: metricsAddr,
-		Port:               9443,
+		Port:               9443, // nolint:gomnd
 		LeaderElection:     enableLeaderElection,
 		LeaderElectionID:   "06237eb5.geberl.io",
 	})

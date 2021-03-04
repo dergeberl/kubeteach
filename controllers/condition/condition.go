@@ -21,14 +21,15 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	teachv1alpha1 "kubeteach/api/v1alpha1"
+	"strconv"
+	"strings"
+
 	"github.com/go-logr/logr"
 	"github.com/tidwall/gjson"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime/schema"
-	teachv1alpha1 "kubeteach/api/v1alpha1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-	"strconv"
-	"strings"
 )
 
 // Checks is used for configuration of the condition checks

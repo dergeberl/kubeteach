@@ -20,19 +20,20 @@ package controllers
 import (
 	"context"
 	"fmt"
+	teachv1alpha1 "kubeteach/api/v1alpha1"
+	"kubeteach/controllers/condition"
+	"reflect"
+	"time"
+
 	"github.com/go-logr/logr"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/tools/record"
-	teachv1alpha1 "kubeteach/api/v1alpha1"
-	"kubeteach/controllers/condition"
-	"reflect"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
-	"time"
 )
 
 const (

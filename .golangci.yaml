@@ -1,6 +1,11 @@
 run:
   deadline: 5m
-  skip-files: []
+  skip-dirs:
+    - config
+    - bin
+    - hack
+    - vendor
+    - exercises
 
 linters-settings:
   linters-settings.govet:
@@ -37,9 +42,11 @@ linters:
     - stylecheck
     - unused
     - whitespace
+    - gomnd
+    - goimports
+    - noctx
 
 issues:
   exclude-use-default: false
   max-per-linter: 0
   max-same-issues: 0
-  exclude: []

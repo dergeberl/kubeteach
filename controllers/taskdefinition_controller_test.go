@@ -19,14 +19,15 @@ package controllers
 import (
 	"context"
 	"errors"
+	teachv1alpha1 "kubeteach/api/v1alpha1"
+	"time"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
-	teachv1alpha1 "kubeteach/api/v1alpha1"
-	"time"
 )
 
 type testData struct {
@@ -41,13 +42,13 @@ var _ = Describe("TaskConditions ApplyChecks", func() {
 			testObjects := []runtime.Object{
 				&v1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: "test2"}},
 			}
-			By("deploy test objects")
+			By("deploy testdata objects")
 			for _, obj := range testObjects {
 				Expect(k8sClient.Create(ctx, obj)).Should(Succeed())
 
 			}
 
-			By("Apply test task definitions")
+			By("Apply testdata task definitions")
 			requireTask := "task1"
 			tests := []testData{{
 				state: stateActive,
@@ -132,20 +133,20 @@ var _ = Describe("TaskConditions ApplyChecks", func() {
 			for _, test := range tests {
 				Expect(k8sClient.Create(ctx, &test.taskDefinition)).Should(Succeed())
 			}
-			for _, test := range tests {
+			for _, testdata := range tests {
 				curTask := &teachv1alpha1.Task{}
 				Eventually(func() error {
-					err := k8sClient.Get(ctx, types.NamespacedName{Name: test.taskDefinition.Name, Namespace: test.taskDefinition.Namespace}, curTask) // nolint:lll
+					err := k8sClient.Get(ctx, types.NamespacedName{Name: testdata.taskDefinition.Name, Namespace: testdata.taskDefinition.Namespace}, curTask) // nolint:lll
 					if err != nil {
 						return err
 					}
-					if curTask.Status.State != nil && *curTask.Status.State == test.state {
+					if curTask.Status.State != nil && *curTask.Status.State == testdata.state {
 						return nil
 					}
 					if curTask.Status.State != nil {
-						return errors.New("not expected state " + *curTask.Status.State + " in task " + test.taskDefinition.Name)
+						return errors.New("not expected state " + *curTask.Status.State + " in task " + testdata.taskDefinition.Name)
 					}
-					return errors.New("task has no status in task " + test.taskDefinition.Name)
+					return errors.New("task has no status in task " + testdata.taskDefinition.Name)
 				}, time.Second*5, time.Second*1).Should(Succeed())
 			}
 
@@ -171,7 +172,7 @@ var _ = Describe("TaskConditions ApplyChecks", func() {
 				&v1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: "test1"}},
 				&v1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: "test3"}},
 			}
-			By("deploy test objects")
+			By("deploy testdata objects")
 			for _, obj := range testObjects2 {
 				Expect(k8sClient.Create(ctx, obj)).Should(Succeed())
 			}
