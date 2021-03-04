@@ -45,26 +45,28 @@ func (c *Checks) runTaskCondition(
 	taskCondition teachv1alpha1.TaskCondition,
 ) (bool, error) {
 	u, err := c.getConditionObject(ctx, taskCondition)
+	if taskCondition.NotExists {
+		if err != nil && client.IgnoreNotFound(err) == nil {
+			return true, nil
+		}
+		return false, nil
+	}
+	if err != nil {
+		if client.IgnoreNotFound(err) == nil {
+			return false, nil
+		}
+		return false, err
+	}
+
+	success, err := c.runResourceConditions(taskCondition.ResourceCondition, *u)
 	if err != nil {
 		return false, err
 	}
 
-	var successfulItem int
-	for _, item := range u.Items {
-		success, err := c.runResourceConditions(taskCondition.ResourceCondition, item)
-		if err != nil {
-			return false, err
-		}
-		if success && !taskCondition.MatchAll {
-			return true, nil
-		}
-		if success {
-			successfulItem++
-		}
-	}
-	if taskCondition.MatchAll && successfulItem == len(u.Items) {
+	if success {
 		return true, nil
 	}
+
 	return false, nil
 }
 
@@ -140,16 +142,18 @@ func (c *Checks) runResourceCondition(
 func (c *Checks) getConditionObject(
 	ctx context.Context,
 	taskCondition teachv1alpha1.TaskCondition,
-) (*unstructured.UnstructuredList, error) {
-	u := unstructured.UnstructuredList{}
+) (*unstructured.Unstructured, error) {
+	u := unstructured.Unstructured{}
 	u.SetGroupVersionKind(schema.GroupVersionKind{
 		Group:   taskCondition.APIGroup,
 		Version: taskCondition.APIVersion,
 		Kind:    taskCondition.Kind,
 	})
 
-	err := c.Client.List(ctx, &u, &client.ListOptions{})
-	if err != nil && client.IgnoreNotFound(err) != nil {
+	err := c.Client.Get(ctx,
+		client.ObjectKey{Name: taskCondition.Name, Namespace: taskCondition.Namespace},
+		&u)
+	if err != nil {
 		return nil, err
 	}
 

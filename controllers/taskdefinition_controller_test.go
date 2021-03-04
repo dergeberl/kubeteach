@@ -48,7 +48,7 @@ var _ = Describe("TaskConditions ApplyChecks", func() {
 							APIVersion: "v1",
 							Kind:       "Namespace",
 							APIGroup:   "",
-							MatchAll:   false,
+							Name:       "test1",
 							ResourceCondition: []teachv1alpha1.ResourceCondition{{
 								Field:    "metadata.name",
 								Operator: "eq",
@@ -74,7 +74,7 @@ var _ = Describe("TaskConditions ApplyChecks", func() {
 							APIVersion: "v1",
 							Kind:       "Namespace",
 							APIGroup:   "",
-							MatchAll:   false,
+							Name:       "test2",
 							ResourceCondition: []teachv1alpha1.ResourceCondition{{
 								Field:    "metadata.name",
 								Operator: "eq",
@@ -100,7 +100,7 @@ var _ = Describe("TaskConditions ApplyChecks", func() {
 							APIVersion: "v1",
 							Kind:       "Namespace",
 							APIGroup:   "",
-							MatchAll:   false,
+							Name:       "test3",
 							ResourceCondition: []teachv1alpha1.ResourceCondition{{
 								Field:    "metadata.name",
 								Operator: "eq",
@@ -126,7 +126,10 @@ var _ = Describe("TaskConditions ApplyChecks", func() {
 					if curTask.Status.State != nil && *curTask.Status.State == test.state {
 						return nil
 					}
-					return errors.New("not expected state")
+					if curTask.Status.State != nil {
+						return errors.New("not expected state " + *curTask.Status.State + " in task " + test.taskDefinition.Name)
+					}
+					return errors.New("task has no status in task " + test.taskDefinition.Name)
 				}, time.Second*5, time.Second*1).Should(Succeed())
 			}
 

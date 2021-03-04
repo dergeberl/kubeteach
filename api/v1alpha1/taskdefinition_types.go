@@ -58,9 +58,12 @@ type TaskCondition struct {
 	Kind string `json:"kind,omitempty"`
 	// APIGroup is used of the object that should be match this conditions
 	APIGroup string `json:"apiGroup,omitempty"`
-	// MatchAll it set to true, ResourceCondition must be successful on all objects of this type
-	// Useful to check if a object is deleted
-	MatchAll bool `json:"matchAll,omitempty"`
+	// Name defines the name of the object that must apply to this conditions
+	Name string `json:"name,omitempty"`
+	// Namespace is used to find the object if it is namespaced
+	Namespace string `json:"namespace,omitempty"`
+	// NotExists if set to true, all ResourceCondition are ignored and the TaskCondition is true if object do not exists
+	NotExists bool `json:"notExists,omitempty"`
 	// ResourceCondition describe the conditions that must be apply to success this TaskCondition
 	ResourceCondition []ResourceCondition `json:"resourceCondition,omitempty"`
 }
