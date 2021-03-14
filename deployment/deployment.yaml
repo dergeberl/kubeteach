@@ -44,7 +44,7 @@ spec:
               requiredTaskName:
                 description: RequiredTaskName defines a TaskDefinition Name that have to be done before. Useful for example if in task1 a object should be created and in task2 the object should be deleted again.
                 type: string
-              taskConditions:
+              taskCondition:
                 description: TaskConditions defines a list of conditions for a object that must be true to complete the task.
                 items:
                   description: TaskCondition defines a list of conditions for a object that must be true to complete the task.
@@ -117,7 +117,7 @@ spec:
                 - title
                 type: object
             required:
-            - taskConditions
+            - taskCondition
             - taskSpec
             type: object
           status:
@@ -403,7 +403,7 @@ spec:
       containers:
       - args:
         - --enable-leader-election
-        image: localhost:5000/kubeteach:latest
+        image: dergeberl/kubeteach:latest
         name: manager
         resources:
           limits:
