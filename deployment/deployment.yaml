@@ -403,8 +403,6 @@ spec:
       containers:
       - args:
         - --enable-leader-election
-        command:
-        - /manager
         image: localhost:5000/kubeteach:latest
         name: manager
         resources:
