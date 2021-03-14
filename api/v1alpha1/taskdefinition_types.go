@@ -48,7 +48,7 @@ type TaskDefinitionSpec struct {
 	TaskSpec TaskSpec `json:"taskSpec"`
 	// TaskConditions defines a list of conditions for a object that must be true to complete the task.
 	// +kubebuilder:validation:Required
-	TaskConditions []TaskCondition `json:"taskConditions"`
+	TaskConditions []TaskCondition `json:"taskCondition"`
 	// RequiredTaskName defines a TaskDefinition Name that have to be done before.
 	// Useful for example if in task1 a object should be created and in task2 the object should be deleted again.
 	//  +optional
