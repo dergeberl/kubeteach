@@ -1,0 +1,25 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  creationTimestamp: null
+  labels:
+    app: kubeteach-webserver
+  name: kubeteach-webserver
+  namespace: kubeteach
+spec:
+  replicas: 5
+  selector:
+    matchLabels:
+      app: kubeteach-webserver
+  strategy: {}
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: kubeteach-webserver
+    spec:
+      containers:
+      - image: nginx:latest
+        name: nginx
+        resources: {}
+status: {}

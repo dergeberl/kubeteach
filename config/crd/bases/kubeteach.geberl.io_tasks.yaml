@@ -20,6 +20,9 @@ spec:
     - jsonPath: .spec.title
       name: Title
       type: string
+    - jsonPath: .spec.description
+      name: Description
+      type: string
     - jsonPath: .status.state
       name: Status
       type: string

@@ -24,10 +24,11 @@ spec:
   taskSpec:
     title: "Create pod"
     description: "Create a pod in namespace kubeteach, the name pod1 and nginx:latest as image"
+  requiredTaskName: task1
   taskConditions:
     - apiVersion: v1
       kind: Pod
-      name: "kubeteach"
+      name: "pod1"
       namespace: "kubeteach"
       resourceCondition:
         - field: "spec.containers.0.image"
@@ -84,7 +85,7 @@ metadata:
 spec:
   taskSpec:
     title: "Add port to deployment"
-    description: "Add a containerPort to the deployment from task3"
+    description: "Add a containerPort (TCP port 80) to the deployment from task3"
   requiredTaskName: task3
   taskConditions:
     - apiVersion: "apps/v1"

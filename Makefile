@@ -1,6 +1,6 @@
 
 # Image URL to use all building/pushing image targets
-IMG ?= kubeteach:latest
+IMG ?= localhost:5000/kubeteach:latest
 # Produce CRDs that work back to Kubernetes 1.11 (no version conversion)
 CRD_OPTIONS ?= "crd:crdVersions=v1,preserveUnknownFields=false,trivialVersions=false"
 
@@ -37,6 +37,11 @@ uninstall: manifests
 deploy: manifests
 	cd config/manager && kustomize edit set image controller=${IMG}
 	kustomize build config/default | kubectl apply -f -
+
+# Deploy controller in the configured Kubernetes cluster in ~/.kube/config
+generate-deploy: manifests
+	cd config/manager && kustomize edit set image controller=${IMG}
+	kustomize build config/default > deployment/deployment.yaml
 
 # Generate manifests e.g. CRD, RBAC etc.
 manifests: controller-gen

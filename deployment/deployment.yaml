@@ -1,0 +1,417 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  labels:
+    control-plane: controller-manager
+  name: kubeteach-system
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.2.5
+  creationTimestamp: null
+  name: taskdefinitions.kubeteach.geberl.io
+spec:
+  group: kubeteach.geberl.io
+  names:
+    kind: TaskDefinition
+    listKind: TaskDefinitionList
+    plural: taskdefinitions
+    singular: taskdefinition
+  scope: Namespaced
+  versions:
+  - additionalPrinterColumns:
+    - jsonPath: .status.state
+      name: Status
+      type: string
+    name: v1alpha1
+    schema:
+      openAPIV3Schema:
+        description: TaskDefinition is the Schema for the taskdefinitions API.
+        properties:
+          apiVersion:
+            description: 'APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+            type: string
+          kind:
+            description: 'Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+            type: string
+          metadata:
+            type: object
+          spec:
+            description: TaskDefinitionSpec defines the desired state of TaskDefinition.
+            properties:
+              requiredTaskName:
+                description: RequiredTaskName defines a TaskDefinition Name that have to be done before. Useful for example if in task1 a object should be created and in task2 the object should be deleted again.
+                type: string
+              taskConditions:
+                description: TaskConditions defines a list of conditions for a object that must be true to complete the task.
+                items:
+                  description: TaskCondition defines a list of conditions for a object that must be true to complete the task.
+                  properties:
+                    apiGroup:
+                      description: APIGroup is used of the object that should be match this conditions
+                      type: string
+                    apiVersion:
+                      description: APIVersion is used of the object that should be match this conditions
+                      type: string
+                    kind:
+                      description: Kind is used of the object that should be match this conditions
+                      type: string
+                    name:
+                      description: Name defines the name of the object that must apply to this conditions
+                      type: string
+                    namespace:
+                      description: Namespace is used to find the object if it is namespaced
+                      type: string
+                    notExists:
+                      description: NotExists if set to true, all ResourceCondition are ignored and the TaskCondition is true if object do not exists
+                      type: boolean
+                    resourceCondition:
+                      description: ResourceCondition describe the conditions that must be apply to success this TaskCondition
+                      items:
+                        description: ResourceCondition describe the conditions that must be apply to success this TaskCondition
+                        properties:
+                          field:
+                            description: 'Field is the json search string for this condition. Example: metadata.name For more details have a look into gjson docs: https://github.com/tidwall/gjson'
+                            type: string
+                          operator:
+                            description: Operator is for the condition. Valid operators are eq, neq, lt, gt, nil, notnil contains.
+                            enum:
+                            - eq
+                            - neq
+                            - lt
+                            - gt
+                            - contains
+                            - nil
+                            - notnil
+                            type: string
+                          value:
+                            description: Value contains the value which the operater must match. Must be a string but for lt and gt only numbers are allowed in this string. Value is ignored by operator nil and notnil
+                            type: string
+                        required:
+                        - field
+                        - operator
+                        type: object
+                      type: array
+                  required:
+                  - apiVersion
+                  - kind
+                  - name
+                  type: object
+                type: array
+              taskSpec:
+                description: TaskSpec represents spec of the task that is creating for this TaskDefinition.
+                properties:
+                  description:
+                    description: Description describes the task
+                    type: string
+                  helpURL:
+                    description: HelpURL is a URL that can help to solve this Task
+                    type: string
+                  title:
+                    description: Title is the title of the task
+                    type: string
+                required:
+                - description
+                - title
+                type: object
+            required:
+            - taskConditions
+            - taskSpec
+            type: object
+          status:
+            description: TaskDefinitionStatus defines the observed state of TaskDefinition
+            properties:
+              state:
+                description: State represent the status of this task Can be pending, active, successful, error
+                type: string
+            type: object
+        type: object
+    served: true
+    storage: true
+    subresources:
+      status: {}
+status:
+  acceptedNames:
+    kind: ""
+    plural: ""
+  conditions: []
+  storedVersions: []
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.2.5
+  creationTimestamp: null
+  name: tasks.kubeteach.geberl.io
+spec:
+  group: kubeteach.geberl.io
+  names:
+    kind: Task
+    listKind: TaskList
+    plural: tasks
+    singular: task
+  scope: Namespaced
+  versions:
+  - additionalPrinterColumns:
+    - jsonPath: .spec.title
+      name: Title
+      type: string
+    - jsonPath: .spec.description
+      name: Description
+      type: string
+    - jsonPath: .status.state
+      name: Status
+      type: string
+    name: v1alpha1
+    schema:
+      openAPIV3Schema:
+        description: Task is the Schema for the tasks API
+        properties:
+          apiVersion:
+            description: 'APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+            type: string
+          kind:
+            description: 'Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+            type: string
+          metadata:
+            type: object
+          spec:
+            description: TaskSpec defines the desired state of Task
+            properties:
+              description:
+                description: Description describes the task
+                type: string
+              helpURL:
+                description: HelpURL is a URL that can help to solve this Task
+                type: string
+              title:
+                description: Title is the title of the task
+                type: string
+            required:
+            - description
+            - title
+            type: object
+          status:
+            description: TaskStatus defines the observed state of Task
+            properties:
+              state:
+                description: State represent the status of this task Can be pending, active, successful
+                type: string
+            type: object
+        type: object
+    served: true
+    storage: true
+    subresources:
+      status: {}
+status:
+  acceptedNames:
+    kind: ""
+    plural: ""
+  conditions: []
+  storedVersions: []
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: kubeteach-leader-election-role
+  namespace: kubeteach-system
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - configmaps
+  verbs:
+  - get
+  - list
+  - watch
+  - create
+  - update
+  - patch
+  - delete
+- apiGroups:
+  - ""
+  resources:
+  - configmaps/status
+  verbs:
+  - get
+  - update
+  - patch
+- apiGroups:
+  - ""
+  resources:
+  - events
+  verbs:
+  - create
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  creationTimestamp: null
+  name: kubeteach-manager-role
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - events
+  verbs:
+  - create
+  - patch
+- apiGroups:
+  - kubeteach.geberl.io
+  resources:
+  - taskdefinitions
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - kubeteach.geberl.io
+  resources:
+  - taskdefinitions/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - kubeteach.geberl.io
+  resources:
+  - tasks
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - kubeteach.geberl.io
+  resources:
+  - tasks/status
+  verbs:
+  - get
+  - patch
+  - update
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: kubeteach-metrics-reader
+rules:
+- nonResourceURLs:
+  - /metrics
+  verbs:
+  - get
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: kubeteach-proxy-role
+rules:
+- apiGroups:
+  - authentication.k8s.io
+  resources:
+  - tokenreviews
+  verbs:
+  - create
+- apiGroups:
+  - authorization.k8s.io
+  resources:
+  - subjectaccessreviews
+  verbs:
+  - create
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: kubeteach-leader-election-rolebinding
+  namespace: kubeteach-system
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: kubeteach-leader-election-role
+subjects:
+- kind: ServiceAccount
+  name: default
+  namespace: kubeteach-system
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: kubeteach-manager-rolebinding
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: kubeteach-manager-role
+subjects:
+- kind: ServiceAccount
+  name: default
+  namespace: kubeteach-system
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: kubeteach-proxy-rolebinding
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: kubeteach-proxy-role
+subjects:
+- kind: ServiceAccount
+  name: default
+  namespace: kubeteach-system
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    control-plane: controller-manager
+  name: kubeteach-controller-manager-metrics-service
+  namespace: kubeteach-system
+spec:
+  ports:
+  - name: https
+    port: 8443
+    targetPort: https
+  selector:
+    control-plane: controller-manager
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    control-plane: controller-manager
+  name: kubeteach-controller-manager
+  namespace: kubeteach-system
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      control-plane: controller-manager
+  template:
+    metadata:
+      labels:
+        control-plane: controller-manager
+    spec:
+      containers:
+      - args:
+        - --enable-leader-election
+        command:
+        - /manager
+        image: localhost:5000/kubeteach:latest
+        name: manager
+        resources:
+          limits:
+            cpu: 100m
+            memory: 30Mi
+          requests:
+            cpu: 100m
+            memory: 20Mi
+      terminationGracePeriodSeconds: 10

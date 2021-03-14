@@ -1,0 +1,18 @@
+apiVersion: v1
+kind: Service
+metadata:
+  creationTimestamp: null
+  labels:
+    app: kubeteach-webserver
+  name: kubeteach-webserver
+  namespace: kubeteach
+spec:
+  ports:
+  - port: 80
+    protocol: TCP
+    targetPort: 80
+  selector:
+    app: kubeteach-webserver
+  type: NodePort
+status:
+  loadBalancer: {}

@@ -55,6 +55,8 @@ type TaskDefinitionReconciler struct {
 // +kubebuilder:rbac:groups=kubeteach.geberl.io,resources=taskdefinitions/status,verbs=get;update;patch
 // +kubebuilder:rbac:groups=kubeteach.geberl.io,resources=tasks,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=kubeteach.geberl.io,resources=tasks/status,verbs=get;update;patch
+// +kubebuilder:rbac:groups=kubeteach.geberl.io,resources=tasks/status,verbs=get;update;patch
+// +kubebuilder:rbac:groups="",resources=events,verbs=create;patch
 
 // Reconcile handles all about taskdefinitions and tasks
 func (r *TaskDefinitionReconciler) Reconcile(
