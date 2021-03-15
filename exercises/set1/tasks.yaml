@@ -118,3 +118,43 @@ spec:
         - field: "spec.type"
           operator: "eq"
           value: "NodePort"
+---
+apiVersion: kubeteach.geberl.io/v1alpha1
+kind: TaskDefinition
+metadata:
+  name: task7
+spec:
+  taskSpec:
+    title: "Create configMap"
+    description: "Create a configMap with name colorconf in namespace kubeteach with value color=blue"
+  taskCondition:
+    - apiVersion: "v1"
+      kind: ConfigMap
+      name: "colorconf"
+      namespace: kubeteach
+      resourceCondition:
+        - field: "data.color"
+          operator: "eq"
+          value: "blue"
+---
+apiVersion: kubeteach.geberl.io/v1alpha1
+kind: TaskDefinition
+metadata:
+  name: task8
+spec:
+  taskSpec:
+    title: "Bind configmap data to pod"
+    description: "Create a new nginx:latest pod with name colorconf-pod in namespace kubeteach and use the configmap value color as environment variable COLOR"
+  requiredTaskName: task7
+  taskCondition:
+    - apiVersion: "v1"
+      kind: Pod
+      name: "colorconf-pod"
+      namespace: kubeteach
+      resourceCondition:
+        - field: "spec.containers.0.env.#(name==COLOR).valueFrom.configMapKeyRef.name"
+          operator: "eq"
+          value: "colorconf"
+        - field: "spec.containers.0.env.#(name==COLOR).valueFrom.configMapKeyRef.key"
+          operator: "eq"
+          value: "color"
