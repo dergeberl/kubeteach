@@ -65,7 +65,7 @@ Events:
   Normal  Active  12m   Task  Task has no pre required task, task is now active
 ```
 
-Now you can solve tasks by doing all what is described in the description of the task.
+Now you can solve tasks by doing what's described in the task.
 
 For example `task1`: Create a new namespace with the name kubeteach
 
@@ -84,14 +84,25 @@ task1   Create namespace   Create a Namespace with the name kubeteach   successf
 If a task is in state `pending` you have to solve another task before.
 
 
-## how it is working
+## how it works
 
 In the `exercise` folder is a set of `taskdefinitions` which describe a `task` and conditions to check if the task is successful.
 
-To check if the task is successful there is list if `taskCondition`. 
-Each `taskCondition` describe an object (apiVersion, kind and name) and contains a list of `resourceCondition`. 
-Each `resourceCondition` contains a field witch should be checked, an operator (eq, neq, gt, lt, nil, notnil, contains) and a value. 
+To check if the task is successful there is a list of `taskCondition`. 
+Each `taskCondition` describes an object (apiVersion, kind and name) and contains a list of `resourceCondition`. 
+Each `resourceCondition` contains a field which should be checked, an operator (see table below) and a value. 
 The field is a json path to find the field witch should be checked (it is based on [tidwall/gjson](https://github.com/tidwall/gjson)).
+
+
+| operators | description |
+| --- | --- |
+| eq | equal |
+| neq | not equal |
+| gt | greater than, value and field must be a number |
+| lt | less than, value and field must be a number |
+| nil | field is not set, value will be ignored |
+| notnil | field is set, value will be ignored |
+| contains | string is contained in field |
 
 A simple example to check if a namespace is created:
 
@@ -114,7 +125,7 @@ spec:
           value: "kubeteach"
 ```
 
-For check if an object don't exist you can use `spec.taskdefiniton.notExists` and set it to ture. To depend on another task you can link a task as required with `spac.requiredTaskName`. This task will be in pending until the required task is successful. 
+To check if an object doesn't exist you can use `spec.taskdefiniton.notExists` and set it to true. To depend on another task you can link a task as required with `spac.requiredTaskName`. This task will be in pending until the required task is successful. 
 
 Example, delete the created kubeteach namespace from task1:
 
