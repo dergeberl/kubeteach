@@ -7,6 +7,7 @@ Kubeteach is an operator build with [kubebuilder](https://github.com/kubernetes-
 ## Installation
 
 To install kubeteach you first need a kubernetes cluster. Checkout the [kind quick start](https://kind.sigs.k8s.io/docs/user/quick-start/).
+
 You need kubectl for connection to your cluster. Checkout the [install kubectl guide](https://kubernetes.io/de/docs/tasks/tools/install-kubectl/).
 
 At first, you deploy the operator itself by applying the deployment file in the `deployment` folder.
