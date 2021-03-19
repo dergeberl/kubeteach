@@ -12,6 +12,7 @@ rules:
       - pods
       - services
       - configmaps
+      - serviceaccounts
     verbs:
       - get
       - list
@@ -19,6 +20,14 @@ rules:
       - "apps"
     resources:
       - deployments
+    verbs:
+      - get
+      - list
+  - apiGroups:
+      - "rbac.authorization.k8s.io"
+    resources:
+      - roles
+      - rolebindings
     verbs:
       - get
       - list

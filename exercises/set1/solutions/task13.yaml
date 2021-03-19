@@ -1,0 +1,25 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  creationTimestamp: null
+  labels:
+    app: fix-me
+  name: fix-me
+  namespace: kubeteach-troubleshoot
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: fix-me
+  strategy: {}
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: fix-me
+    spec:
+      containers:
+      - image: nginx:latest
+        name: nginx
+        resources: {}
+status: {}
