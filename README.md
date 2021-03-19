@@ -84,7 +84,7 @@ task1   Create namespace   Create a Namespace with the name kubeteach   successf
 If a task is in state `pending` you have to solve another task before.
 
 
-## how it works
+## How it works
 
 In the `exercise` folder is a set of `taskdefinitions` which describe a `task` and conditions to check if the task is successful.
 
