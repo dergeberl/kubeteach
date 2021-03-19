@@ -96,7 +96,7 @@ func (c *Checks) runResourceConditions(
 	item unstructured.Unstructured,
 ) (bool, error) {
 	if len(resourceConditions) == 0 {
-		return false, errors.New("no resourceCondition defined")
+		return true, nil
 	}
 	parsed, _ := json.Marshal(item.Object)
 	for _, resourceCondition := range resourceConditions {

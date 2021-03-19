@@ -55,11 +55,11 @@ var testCases = []conditionTest{
 		state:         BeFalse(),
 		err:           Not(BeNil()),
 	}, {
-		name:          "error - no ResourceCondition set",
-		obj:           &v1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: "error-no-resource-condition"}},
-		taskCondition: []teachv1alpha1.TaskCondition{{APIVersion: "v1", Kind: "Namespace", APIGroup: "", Name: "error-no-resource-condition", ResourceCondition: nil}},
-		state:         BeFalse(),
-		err:           Not(BeNil()),
+		name:          "true - no ResourceCondition set but object exists",
+		obj:           &v1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: "no-resource-condition"}},
+		taskCondition: []teachv1alpha1.TaskCondition{{APIVersion: "v1", Kind: "Namespace", APIGroup: "", Name: "no-resource-condition", ResourceCondition: nil}},
+		state:         BeTrue(),
+		err:           BeNil(),
 	}, {
 		name:          "false - object-not-found",
 		obj:           nil,
