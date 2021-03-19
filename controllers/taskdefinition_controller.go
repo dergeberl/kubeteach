@@ -145,13 +145,13 @@ func (r *TaskDefinitionReconciler) checkPending(
 			&reqTask)
 		if err != nil {
 			if errors.IsNotFound(err) {
-				return ctrl.Result{}, nil
+				return ctrl.Result{RequeueAfter: r.RequeueTime}, nil
 			}
 			return ctrl.Result{}, err
 		}
 
 		// set state to active if pre required task is successful
-		if *reqTask.Status.State == stateSuccessful {
+		if reqTask.Status.State != nil && *reqTask.Status.State == stateSuccessful {
 			r.Recorder.Event(task, "Normal", "Active", "Pre required task is successful, task is now active")
 			err = r.setState(ctx, stateActive, taskDefinition, task)
 			if err != nil {
