@@ -21,8 +21,9 @@ import (
 	"errors"
 	"fmt"
 	teachv1alpha1 "kubeteach/api/v1alpha1"
-	"sigs.k8s.io/controller-runtime/pkg/client"
 	"time"
+
+	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
