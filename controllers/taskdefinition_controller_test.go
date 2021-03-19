@@ -19,124 +19,42 @@ package controllers
 import (
 	"context"
 	"errors"
+	"fmt"
 	teachv1alpha1 "kubeteach/api/v1alpha1"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 	"time"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	v1 "k8s.io/api/core/v1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 )
 
-type testData struct {
-	state          string
-	taskDefinition teachv1alpha1.TaskDefinition
-}
-
-var _ = Describe("TaskConditions ApplyChecks", func() {
+var _ = Describe("TaskConditions tests", func() {
 	Context("Run checks in checkItems", func() {
-		It("run testcases", func() {
-			ctx := context.Background()
-			testObjects := []runtime.Object{
-				&v1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: "test2"}},
-			}
-			By("deploy testdata objects")
-			for _, obj := range testObjects {
-				Expect(k8sClient.Create(ctx, obj)).Should(Succeed())
+		ctx := context.Background()
 
-			}
-
-			By("Apply testdata task definitions")
-			requireTask := "task1"
-			tests := []testData{{
-				state: stateActive,
-				taskDefinition: teachv1alpha1.TaskDefinition{
-
-					ObjectMeta: metav1.ObjectMeta{Name: "task1", Namespace: "default"},
-					Spec: teachv1alpha1.TaskDefinitionSpec{
-						TaskSpec: teachv1alpha1.TaskSpec{
-							Title:       "task1",
-							Description: "Task1 description",
-							HelpURL:     "HelpURL",
-						},
-						TaskConditions: []teachv1alpha1.TaskCondition{{
-							APIVersion: "v1",
-							Kind:       "Namespace",
-							APIGroup:   "",
-							Name:       "test1",
-							ResourceCondition: []teachv1alpha1.ResourceCondition{{
-								Field:    "metadata.name",
-								Operator: "eq",
-								Value:    "test1",
-							},
-							},
-						}},
-						RequiredTaskName: nil,
-					},
-				},
-			}, {
-				state: stateSuccessful,
-				taskDefinition: teachv1alpha1.TaskDefinition{
-
-					ObjectMeta: metav1.ObjectMeta{Name: "task2", Namespace: "default"},
-					Spec: teachv1alpha1.TaskDefinitionSpec{
-						TaskSpec: teachv1alpha1.TaskSpec{
-							Title:       "task2",
-							Description: "Task2 description",
-							HelpURL:     "HelpURL",
-						},
-						TaskConditions: []teachv1alpha1.TaskCondition{{
-							APIVersion: "v1",
-							Kind:       "Namespace",
-							APIGroup:   "",
-							Name:       "test2",
-							ResourceCondition: []teachv1alpha1.ResourceCondition{{
-								Field:    "metadata.name",
-								Operator: "eq",
-								Value:    "test2",
-							},
-							},
-						}},
-						RequiredTaskName: nil,
-					},
-				},
-			}, {
-				state: statePending,
-				taskDefinition: teachv1alpha1.TaskDefinition{
-
-					ObjectMeta: metav1.ObjectMeta{Name: "task3", Namespace: "default"},
-					Spec: teachv1alpha1.TaskDefinitionSpec{
-						TaskSpec: teachv1alpha1.TaskSpec{
-							Title:       "task3",
-							Description: "Task3 description",
-							HelpURL:     "HelpURL",
-						},
-						TaskConditions: []teachv1alpha1.TaskCondition{{
-							APIVersion: "v1",
-							Kind:       "Namespace",
-							APIGroup:   "",
-							Name:       "test3",
-							ResourceCondition: []teachv1alpha1.ResourceCondition{{
-								Field:    "metadata.name",
-								Operator: "eq",
-								Value:    "test3",
-							},
-							},
-						}},
-						RequiredTaskName: &requireTask,
-					},
-				},
-			},
-			}
+		It("apply taskDefinitions", func() {
 			for _, test := range tests {
 				Expect(k8sClient.Create(ctx, &test.taskDefinition)).Should(Succeed())
 			}
+		})
+
+		It("apply initial test objects", func() {
+			for _, test := range tests {
+				if test.initialDeploy == nil {
+					continue
+				}
+				Expect(k8sClient.Create(ctx, test.initialDeploy)).Should(Succeed())
+			}
+		})
+
+		It("check state after initial objects", func() {
 			for _, testdata := range tests {
 				curTask := &teachv1alpha1.Task{}
 				Eventually(func() error {
-					err := k8sClient.Get(ctx, types.NamespacedName{Name: testdata.taskDefinition.Name, Namespace: testdata.taskDefinition.Namespace}, curTask) // nolint:lll
+					err := k8sClient.Get(ctx,
+						types.NamespacedName{Name: testdata.taskDefinition.Name, Namespace: testdata.taskDefinition.Namespace},
+						curTask)
 					if err != nil {
 						return err
 					}
@@ -144,13 +62,14 @@ var _ = Describe("TaskConditions ApplyChecks", func() {
 						return nil
 					}
 					if curTask.Status.State != nil {
-						return errors.New("not expected state " + *curTask.Status.State + " in task " + testdata.taskDefinition.Name)
+						return fmt.Errorf("got state %v but want %v in task %v", curTask.Status.State, testdata.state, curTask.Name)
 					}
-					return errors.New("task has no status in task " + testdata.taskDefinition.Name)
+					return fmt.Errorf("got no state but want %v in task %v", testdata.state, curTask.Name)
 				}, time.Second*5, time.Second*1).Should(Succeed())
 			}
+		})
 
-			By("update task spec")
+		It("test taskSpec update", func() {
 			task1 := &teachv1alpha1.TaskDefinition{}
 			Expect(k8sClient.Get(ctx, types.NamespacedName{Name: "task1", Namespace: "default"}, task1)).Should(Succeed())
 			task1.Spec.TaskSpec.HelpURL = "newURL"
@@ -166,35 +85,75 @@ var _ = Describe("TaskConditions ApplyChecks", func() {
 					return nil
 				}
 				return errors.New("no update")
-			}, time.Second*15, time.Second*1).Should(Succeed())
+			}, time.Second*5, time.Second*1).Should(Succeed())
+		})
 
-			testObjects2 := []runtime.Object{
-				&v1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: "test1"}},
-				&v1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: "test3"}},
-			}
-			By("deploy testdata objects")
-			for _, obj := range testObjects2 {
-				Expect(k8sClient.Create(ctx, obj)).Should(Succeed())
-			}
+		It("recreate task", func() {
+			task1 := &teachv1alpha1.Task{}
+			Expect(k8sClient.Get(ctx, types.NamespacedName{Name: "task1", Namespace: "default"}, task1)).Should(Succeed())
+			Expect(k8sClient.Delete(ctx, task1)).Should(Succeed())
+
+			Eventually(func() error {
+				task := &teachv1alpha1.Task{}
+				err := k8sClient.Get(ctx, types.NamespacedName{Name: "task1", Namespace: "default"}, task)
+				if err != nil {
+					return err
+				}
+				return nil
+			}, time.Second*5, time.Second*1).Should(Succeed())
+		})
+
+		It("apply solutions", func() {
 			for _, test := range tests {
-				curTask := &teachv1alpha1.Task{}
+				if test.solution != nil {
+					Expect(k8sClient.Create(ctx, test.solution)).Should(Succeed())
+				}
+			}
+		})
+
+		It("check if every test is successful", func() {
+			for _, test := range tests {
+				By(test.taskDefinition.Name)
+				curTask := &teachv1alpha1.TaskDefinition{}
 				Eventually(func() error {
-					err := k8sClient.Get(ctx, types.NamespacedName{Name: test.taskDefinition.Name, Namespace: test.taskDefinition.Namespace}, curTask) // nolint:lll
+					err := k8sClient.Get(ctx,
+						types.NamespacedName{Name: test.taskDefinition.Name, Namespace: test.taskDefinition.Namespace},
+						curTask)
 					if err != nil {
 						return err
 					}
 					if curTask.Status.State != nil && *curTask.Status.State == stateSuccessful {
 						return nil
 					}
-					return errors.New("not expected state")
+					if curTask.Status.State != nil {
+						return fmt.Errorf("got state %v but want %v in task %v", *curTask.Status.State, stateSuccessful, curTask)
+					}
+					return fmt.Errorf("got no state but want %v in task %v", stateSuccessful, curTask)
 				}, time.Second*5, time.Second*1).Should(Succeed())
 			}
 
-			By("delete Taskdefinitions")
+		})
 
+		It("delete all tests", func() {
 			for _, test := range tests {
 				Expect(k8sClient.Delete(ctx, &test.taskDefinition)).Should(Succeed())
 			}
 		})
+
+		It("check deletion", func() {
+			for _, test := range tests {
+				Eventually(func() error {
+					curTask := &teachv1alpha1.TaskDefinition{}
+					err := k8sClient.Get(ctx,
+						types.NamespacedName{Name: test.taskDefinition.Name, Namespace: test.taskDefinition.Namespace},
+						curTask)
+					if err == nil {
+						return fmt.Errorf("taskdefinition still exists %v", test.taskDefinition.Name)
+					}
+					return client.IgnoreNotFound(err)
+				}, time.Second*5, time.Second*1).Should(Succeed())
+			}
+		})
+
 	})
 })
