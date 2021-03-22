@@ -20,14 +20,14 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	teachv1alpha1 "kubeteach/api/v1alpha1"
 	"time"
-
-	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"k8s.io/apimachinery/pkg/types"
+	"sigs.k8s.io/controller-runtime/pkg/client"
+
+	teachv1alpha1 "github.com/dergeberl/kubeteach/api/v1alpha1"
 )
 
 var _ = Describe("TaskConditions tests", func() {

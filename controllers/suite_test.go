@@ -33,7 +33,7 @@ import (
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
-	teachv1alpha1 "kubeteach/api/v1alpha1"
+	teachv1alpha1 "github.com/dergeberl/kubeteach/api/v1alpha1"
 	// +kubebuilder:scaffold:imports
 )
 

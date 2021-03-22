@@ -21,7 +21,6 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	teachv1alpha1 "kubeteach/api/v1alpha1"
 	"strconv"
 	"strings"
 
@@ -30,6 +29,8 @@ import (
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+
+	teachv1alpha1 "github.com/dergeberl/kubeteach/api/v1alpha1"
 )
 
 // Checks is used for configuration of the condition checks

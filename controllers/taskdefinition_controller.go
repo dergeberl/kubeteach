@@ -20,8 +20,6 @@ package controllers
 import (
 	"context"
 	"fmt"
-	teachv1alpha1 "kubeteach/api/v1alpha1"
-	"kubeteach/controllers/condition"
 	"reflect"
 	"time"
 
@@ -34,6 +32,9 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
+
+	teachv1alpha1 "github.com/dergeberl/kubeteach/api/v1alpha1"
+	"github.com/dergeberl/kubeteach/controllers/condition"
 )
 
 const (

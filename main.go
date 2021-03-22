@@ -27,8 +27,8 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
-	teachv1alpha1 "kubeteach/api/v1alpha1"
-	"kubeteach/controllers"
+	teachv1alpha1 "github.com/dergeberl/kubeteach/api/v1alpha1"
+	"github.com/dergeberl/kubeteach/controllers"
 	// +kubebuilder:scaffold:imports
 )
 
