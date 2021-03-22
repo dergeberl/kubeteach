@@ -47,7 +47,7 @@ type TaskDefinitionSpec struct {
 	// +kubebuilder:validation:Required
 	TaskSpec TaskSpec `json:"taskSpec"`
 	// TaskConditions defines a list of conditions for a object that must be true to complete the task.
-	// +kubebuilder:validation:Required
+	// +kubebuilder:validation:MinItems=1
 	TaskConditions []TaskCondition `json:"taskCondition"`
 	// RequiredTaskName defines a TaskDefinition Name that have to be done before.
 	// Useful for example if in task1 a object should be created and in task2 the object should be deleted again.
@@ -58,16 +58,16 @@ type TaskDefinitionSpec struct {
 // TaskCondition defines a list of conditions for a object that must be true to complete the task.
 type TaskCondition struct {
 	// APIVersion is used of the object that should be match this conditions
-	// +kubebuilder:validation:Required
+	// +kubebuilder:validation:MinLength=1
 	APIVersion string `json:"apiVersion"`
 	// Kind is used of the object that should be match this conditions
-	// +kubebuilder:validation:Required
+	// +kubebuilder:validation:MinLength=1
 	Kind string `json:"kind"`
 	// APIGroup is used of the object that should be match this conditions
 	//  +optional
 	APIGroup string `json:"apiGroup,omitempty"`
 	// Name defines the name of the object that must apply to this conditions
-	// +kubebuilder:validation:Required
+	// +kubebuilder:validation:MinLength=1
 	Name string `json:"name"`
 	// Namespace is used to find the object if it is namespaced
 	//  +optional
@@ -76,6 +76,8 @@ type TaskCondition struct {
 	//  +optional
 	NotExists bool `json:"notExists,omitempty"`
 	// ResourceCondition describe the conditions that must be apply to success this TaskCondition
+	// If no ResourceCondition is set this TaskCondition just check if object exits
+	//  +optional
 	ResourceCondition []ResourceCondition `json:"resourceCondition,omitempty"`
 }
 
@@ -84,16 +86,15 @@ type ResourceCondition struct {
 	// Field is the json search string for this condition.
 	// Example: metadata.name
 	// For more details have a look into gjson docs: https://github.com/tidwall/gjson
-	// +kubebuilder:validation:Required
+	// +kubebuilder:validation:MinLength=1
 	Field string `json:"field"`
 	// Operator is for the condition.
 	// Valid operators are eq, neq, lt, gt, nil, notnil contains.
 	// +kubebuilder:validation:Enum=eq;neq;lt;gt;contains;nil;notnil
-	// +kubebuilder:validation:Required
 	Operator string `json:"operator"`
-	// Value contains the value which the operater must match.
+	// Value contains the value which the Operator must match.
 	// Must be a string but for lt and gt only numbers are allowed in this string.
-	// Value is ignored by operator nil and notnil
+	// Value is ignored by Operator nil and notnil
 	//  +optional
 	Value string `json:"value,omitempty"`
 }

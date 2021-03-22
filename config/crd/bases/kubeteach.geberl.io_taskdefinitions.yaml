@@ -59,14 +59,17 @@ spec:
                     apiVersion:
                       description: APIVersion is used of the object that should be
                         match this conditions
+                      minLength: 1
                       type: string
                     kind:
                       description: Kind is used of the object that should be match
                         this conditions
+                      minLength: 1
                       type: string
                     name:
                       description: Name defines the name of the object that must apply
                         to this conditions
+                      minLength: 1
                       type: string
                     namespace:
                       description: Namespace is used to find the object if it is namespaced
@@ -78,7 +81,8 @@ spec:
                       type: boolean
                     resourceCondition:
                       description: ResourceCondition describe the conditions that
-                        must be apply to success this TaskCondition
+                        must be apply to success this TaskCondition If no ResourceCondition
+                        is set this TaskCondition just check if object exits
                       items:
                         description: ResourceCondition describe the conditions that
                           must be apply to success this TaskCondition
@@ -87,6 +91,7 @@ spec:
                             description: 'Field is the json search string for this
                               condition. Example: metadata.name For more details have
                               a look into gjson docs: https://github.com/tidwall/gjson'
+                            minLength: 1
                             type: string
                           operator:
                             description: Operator is for the condition. Valid operators
@@ -101,10 +106,10 @@ spec:
                             - notnil
                             type: string
                           value:
-                            description: Value contains the value which the operater
+                            description: Value contains the value which the Operator
                               must match. Must be a string but for lt and gt only
                               numbers are allowed in this string. Value is ignored
-                              by operator nil and notnil
+                              by Operator nil and notnil
                             type: string
                         required:
                         - field
@@ -116,6 +121,7 @@ spec:
                   - kind
                   - name
                   type: object
+                minItems: 1
                 type: array
               taskSpec:
                 description: TaskSpec represents spec of the task that is creating
@@ -123,6 +129,7 @@ spec:
                 properties:
                   description:
                     description: Description describes the task
+                    minLength: 1
                     type: string
                   helpURL:
                     description: HelpURL is a URL that can help to solve this Task
@@ -132,10 +139,10 @@ spec:
                     type: string
                   title:
                     description: Title is the title of the task
+                    minLength: 1
                     type: string
                 required:
                 - description
-                - longDescription
                 - title
                 type: object
             required:

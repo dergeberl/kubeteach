@@ -105,6 +105,7 @@ spec:
                 properties:
                   description:
                     description: Description describes the task
+                    minLength: 5
                     type: string
                   helpURL:
                     description: HelpURL is a URL that can help to solve this Task
@@ -187,6 +188,7 @@ spec:
             properties:
               description:
                 description: Description describes the task
+                minLength: 5
                 type: string
               helpURL:
                 description: HelpURL is a URL that can help to solve this Task

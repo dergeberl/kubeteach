@@ -48,13 +48,15 @@ type TaskList struct {
 type TaskSpec struct {
 	// Title is the title of the task
 	// +kubebuilder:validation:Required
+	// +kubebuilder:validation:MinLength=1
 	Title string `json:"title"`
 	// Description describes the task
 	// +kubebuilder:validation:Required
+	// +kubebuilder:validation:MinLength=1
 	Description string `json:"description"`
 	// LongDescription describes the task
-	// +kubebuilder:validation:Required
-	LongDescription string `json:"longDescription"`
+	// +optional
+	LongDescription string `json:"longDescription,omitempty"`
 	// HelpURL is a URL that can help to solve this Task
 	// +optional
 	HelpURL string `json:"helpURL,omitempty"`
