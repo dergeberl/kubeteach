@@ -52,6 +52,9 @@ type TaskSpec struct {
 	// Description describes the task
 	// +kubebuilder:validation:Required
 	Description string `json:"description"`
+	// LongDescription describes the task
+	// +kubebuilder:validation:Required
+	LongDescription string `json:"longDescription"`
 	// HelpURL is a URL that can help to solve this Task
 	// +optional
 	HelpURL string `json:"helpURL,omitempty"`

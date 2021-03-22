@@ -109,11 +109,15 @@ spec:
                   helpURL:
                     description: HelpURL is a URL that can help to solve this Task
                     type: string
+                  longDescription:
+                    description: LongDescription describes the task
+                    type: string
                   title:
                     description: Title is the title of the task
                     type: string
                 required:
                 - description
+                - longDescription
                 - title
                 type: object
             required:
@@ -187,11 +191,15 @@ spec:
               helpURL:
                 description: HelpURL is a URL that can help to solve this Task
                 type: string
+              longDescription:
+                description: LongDescription describes the task
+                type: string
               title:
                 description: Title is the title of the task
                 type: string
             required:
             - description
+            - longDescription
             - title
             type: object
           status:
