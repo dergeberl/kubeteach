@@ -30,14 +30,18 @@ var _ = Describe("TaskConditions ApplyChecks", func() {
 			for _, test := range testCases {
 				By(test.name)
 				if test.obj != nil {
-					Expect(k8sClient.Create(ctx, test.obj)).Should(Succeed())
+					for _, obj := range test.obj {
+						Expect(k8sClient.Create(ctx, obj)).Should(Succeed())
+					}
 				}
 				c := Checks{Client: k8sClient, Log: nil}
 				got, gotErr := c.ApplyChecks(ctx, test.taskCondition)
 				Expect(got).Should(test.state)
 				Expect(gotErr).Should(test.err)
 				if test.obj != nil {
-					_ = k8sClient.Delete(ctx, test.obj)
+					for _, obj := range test.obj {
+						_ = k8sClient.Delete(ctx, obj)
+					}
 				}
 			}
 		})
