@@ -7,6 +7,7 @@ spec:
   taskSpec:
     title: "Create namespace"
     description: "Create a new namespace with the name kubeteach"
+    helpURL: "https://kubernetes.io/docs/concepts/overview/working-with-objects/namespaces/"
   taskCondition:
     - apiVersion: v1
       kind: Namespace
@@ -39,6 +40,7 @@ spec:
   taskSpec:
     title: "Create deployment"
     description: "Create a deployment with the name kubeteach-webserver in namespace kubeteach, 3 replicas and nginx:latest as image"
+    helpURL: "https://kubernetes.io/docs/concepts/workloads/controllers/deployment/"
   requiredTaskName: task01
   taskCondition:
     - apiVersion: "apps/v1"
@@ -61,6 +63,7 @@ spec:
   taskSpec:
     title: "Scale deployment"
     description: "Scale the deployment from task3 to 5 replicas"
+    helpURL: "https://kubernetes.io/docs/concepts/workloads/controllers/deployment/#scaling-a-deployment"
   requiredTaskName: task03
   taskCondition:
     - apiVersion: "apps/v1"
@@ -102,6 +105,7 @@ spec:
   taskSpec:
     title: "Create service for deployment"
     description: "Create a service of type NodePort to export port 80 of the deployment from task3"
+    helpURL: "https://kubernetes.io/docs/concepts/services-networking/service/"
   requiredTaskName: task03
   taskCondition:
     - apiVersion: "v1"
@@ -124,6 +128,7 @@ spec:
   taskSpec:
     title: "Create configMap"
     description: "Create a configMap with name colorconf in namespace kubeteach with value color=blue"
+    helpURL: "https://kubernetes.io/docs/concepts/configuration/configmap/"
   requiredTaskName: task01
   taskCondition:
     - apiVersion: "v1"
@@ -143,6 +148,7 @@ spec:
   taskSpec:
     title: "Bind configmap data to pod"
     description: "Create a new nginx:latest pod with name colorconf-pod in namespace kubeteach and use the configmap value color as environment variable COLOR"
+    helpURL: "https://kubernetes.io/docs/concepts/configuration/configmap/"
   requiredTaskName: task07
   taskCondition:
     - apiVersion: "v1"
@@ -165,6 +171,7 @@ spec:
   taskSpec:
     title: "Create serviceaccount"
     description: "Create a new serviceaccount named kubeteach-sa in kubeteach namespace"
+    helpURL: "https://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account/"
   requiredTaskName: task01
   taskCondition:
     - apiVersion: "v1"
@@ -180,6 +187,7 @@ spec:
   taskSpec:
     title: "Use serviceaccount"
     description: "Use the serviceaccount kubeteach-sa in a new deployment named nginx-sa with image nginx:latest in kubeteach namespace"
+    helpURL: "https://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account/"
   requiredTaskName: task09
   taskCondition:
     - apiVersion: "apps/v1"
@@ -202,6 +210,7 @@ spec:
   taskSpec:
     title: "Create role"
     description: "Create a new role named kubeteach-pod-role in kubeteach namespace with permissions on pods (get, list, view)"
+    helpURL: "https://kubernetes.io/docs/reference/access-authn-authz/rbac/"
   requiredTaskName: task10
   taskCondition:
     - apiVersion: "rbac.authorization.k8s.io/v1"
@@ -233,6 +242,7 @@ spec:
   taskSpec:
     title: "Create rolebinding"
     description: "Connect the role kubeteach-pod-role (task11) and serviceaccount nginx-sa (task9) in a rolebinding named kubeteach-rolebinding"
+    helpURL: "https://kubernetes.io/docs/reference/access-authn-authz/rbac/"
   requiredTaskName: task11
   taskCondition:
     - apiVersion: "rbac.authorization.k8s.io/v1"
