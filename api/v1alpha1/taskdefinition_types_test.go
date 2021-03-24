@@ -35,6 +35,8 @@ var _ = Describe("Test task api with creation and deletion on k8s api", func() {
 			}
 		})
 		It("test deepcopy taskDefinition", func() {
+			requiredTaskName := "task1"
+			status := "pending"
 			taskDefinition := &TaskDefinition{
 				ObjectMeta: metav1.ObjectMeta{Name: "task", Namespace: "default"},
 				Spec: TaskDefinitionSpec{
@@ -44,7 +46,7 @@ var _ = Describe("Test task api with creation and deletion on k8s api", func() {
 						LongDescription: "Test1",
 						HelpURL:         "Test1",
 					},
-					RequiredTaskName: nil,
+					RequiredTaskName: &requiredTaskName,
 					TaskConditions: []TaskCondition{
 						{
 							APIVersion: "v1",
@@ -61,9 +63,29 @@ var _ = Describe("Test task api with creation and deletion on k8s api", func() {
 							},
 						},
 					},
-				}}
+				},
+				Status: TaskDefinitionStatus{
+					State: &status,
+				},
+			}
 			Expect(reflect.DeepEqual(taskDefinition, taskDefinition.DeepCopyObject())).Should(BeTrue())
 			Expect(reflect.DeepEqual(taskDefinition, taskDefinition.DeepCopy())).Should(BeTrue())
+			Expect(reflect.DeepEqual(taskDefinition.Spec, *taskDefinition.Spec.DeepCopy())).Should(BeTrue())
+			Expect(reflect.DeepEqual(taskDefinition.Status, *taskDefinition.Status.DeepCopy())).Should(BeTrue())
+			Expect(reflect.DeepEqual(taskDefinition.Spec.TaskConditions[0], *taskDefinition.Spec.TaskConditions[0].DeepCopy())).Should(BeTrue())
+			Expect(reflect.DeepEqual(
+				taskDefinition.Spec.TaskConditions[0].ResourceCondition[0],
+				*taskDefinition.Spec.TaskConditions[0].ResourceCondition[0].DeepCopy())).Should(BeTrue())
+			taskDefinition = nil
+			Expect(reflect.DeepEqual(nil, taskDefinition.DeepCopyObject())).Should(BeTrue())
+
 		})
+		It("test deepcopy list taskDefinition", func() {
+			taskDefinitionList := &TaskDefinitionList{}
+			Expect(k8sClient.List(ctx, taskDefinitionList)).Should(Succeed())
+			Expect(reflect.DeepEqual(taskDefinitionList, taskDefinitionList.DeepCopyObject())).Should(BeTrue())
+			Expect(reflect.DeepEqual(*taskDefinitionList, *taskDefinitionList.DeepCopy())).Should(BeTrue())
+		})
+
 	})
 })

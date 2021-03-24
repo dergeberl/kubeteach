@@ -36,6 +36,7 @@ var _ = Describe("Test task api with creation and deletion on k8s api", func() {
 		})
 
 		It("test deepcopy task", func() {
+			status := "pending"
 			task := &Task{
 				ObjectMeta: metav1.ObjectMeta{Name: "task", Namespace: "default"},
 				Spec: TaskSpec{
@@ -44,9 +45,20 @@ var _ = Describe("Test task api with creation and deletion on k8s api", func() {
 					LongDescription: "Test1",
 					HelpURL:         "Test1",
 				},
+				Status: TaskStatus{State: &status},
 			}
 			Expect(reflect.DeepEqual(task, task.DeepCopyObject())).Should(BeTrue())
-			Expect(reflect.DeepEqual(task, task.DeepCopy())).Should(BeTrue())
+			Expect(reflect.DeepEqual(*task, *task.DeepCopy())).Should(BeTrue())
+			Expect(reflect.DeepEqual(task.Spec, *task.Spec.DeepCopy())).Should(BeTrue())
+			Expect(reflect.DeepEqual(task.Status, *task.Status.DeepCopy())).Should(BeTrue())
+			task = nil
+			Expect(reflect.DeepEqual(nil, task.DeepCopyObject())).Should(BeTrue())
+		})
+		It("test deepcopy list task", func() {
+			taskList := &TaskList{}
+			Expect(k8sClient.List(ctx, taskList)).Should(Succeed())
+			Expect(reflect.DeepEqual(taskList, taskList.DeepCopyObject())).Should(BeTrue())
+			Expect(reflect.DeepEqual(*taskList, *taskList.DeepCopy())).Should(BeTrue())
 		})
 	})
 })
