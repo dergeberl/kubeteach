@@ -31,6 +31,7 @@ import (
 )
 
 var _ = Describe("TaskConditions tests", func() {
+	timeout, retry := time.Second*5, time.Millisecond*300
 	Context("Run checks in checkItems", func() {
 		ctx := context.Background()
 
@@ -66,7 +67,7 @@ var _ = Describe("TaskConditions tests", func() {
 						return fmt.Errorf("got state %v but want %v in task %v", curTask.Status.State, testdata.state, curTask.Name)
 					}
 					return fmt.Errorf("got no state but want %v in task %v", testdata.state, curTask.Name)
-				}, time.Second*5, time.Second*1).Should(Succeed())
+				}, timeout, retry).Should(Succeed())
 			}
 		})
 
@@ -86,22 +87,17 @@ var _ = Describe("TaskConditions tests", func() {
 					return nil
 				}
 				return errors.New("no update")
-			}, time.Second*5, time.Second*1).Should(Succeed())
+			}, timeout, retry).Should(Succeed())
 		})
 
 		It("recreate task", func() {
 			task1 := &teachv1alpha1.Task{}
 			Expect(k8sClient.Get(ctx, types.NamespacedName{Name: "task1", Namespace: "default"}, task1)).Should(Succeed())
 			Expect(k8sClient.Delete(ctx, task1)).Should(Succeed())
-
 			Eventually(func() error {
 				task := &teachv1alpha1.Task{}
-				err := k8sClient.Get(ctx, types.NamespacedName{Name: "task1", Namespace: "default"}, task)
-				if err != nil {
-					return err
-				}
-				return nil
-			}, time.Second*5, time.Second*1).Should(Succeed())
+				return k8sClient.Get(ctx, types.NamespacedName{Name: "task1", Namespace: "default"}, task)
+			}, timeout, retry).Should(Succeed())
 		})
 
 		It("apply solutions", func() {
@@ -130,7 +126,7 @@ var _ = Describe("TaskConditions tests", func() {
 						return fmt.Errorf("got state %v but want %v in task %v", *curTask.Status.State, stateSuccessful, curTask)
 					}
 					return fmt.Errorf("got no state but want %v in task %v", stateSuccessful, curTask)
-				}, time.Second*5, time.Second*1).Should(Succeed())
+				}, timeout, retry).Should(Succeed())
 			}
 
 		})
@@ -152,7 +148,7 @@ var _ = Describe("TaskConditions tests", func() {
 						return fmt.Errorf("taskdefinition still exists %v", test.taskDefinition.Name)
 					}
 					return client.IgnoreNotFound(err)
-				}, time.Second*5, time.Second*1).Should(Succeed())
+				}, timeout, retry).Should(Succeed())
 			}
 		})
 
