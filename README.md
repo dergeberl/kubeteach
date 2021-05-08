@@ -7,6 +7,8 @@ The operator will check if a task is successfully completed based in defined con
 
 **Note:** kubeteach is not designed to deploy it to a production cluster. I recommend to use [kind](https://kind.sigs.k8s.io/) to use kubeteach and learn kubernetes. There is **no** deletion job for created objects from exercises.
 
+**Kubeteach is still in a very early stage of development, which means it may not always be stable and major api changes are necessary.**
+
 ## Preparation
 
 To install kubeteach you need a kubernetes cluster. I recommend [kind](https://kind.sigs.k8s.io/) as a local environment, checkout the [kind quick start](https://kind.sigs.k8s.io/docs/user/quick-start/).
@@ -164,6 +166,6 @@ spec:
 
 ## Contribution
 
-Feel free to open an issue or PR if you miss a feature or found a bug.
+Feedback and PRs are very welcome. For major changes, please open an issue beforehand to clarify if this is in line with the project and to avoid unnecessary work.
 
 New exercises or/an exercise sets are highly welcome, if you have ideas feel free to open a PR or issue.
