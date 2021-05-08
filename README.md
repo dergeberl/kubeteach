@@ -2,14 +2,18 @@
 
 Kubeteach is an operator build with [kubebuilder](https://github.com/kubernetes-sigs/kubebuilder) to learn kubernetes in kubernetes.
 
-The idea is to get tasks as a kubernetes object (custom resource) to learn how to interact with kubernetes and kubectl. 
-The operator will check if a task is successfully completed based in defined conditions.
+Kubeteach was created because I wanted to improve my golang and kubernetes operator knowledge. I came across kubebuilder and had the idea to learn Kubernetes in kubernetes.
+
+The idea is to get tasks as a kubernetes objects (custom resource) to learn how to interact with kubernetes/kubectl while solving tasks in the kubernetes cluster.
+Kubeteach checks whether a task has been completed successfully based on defined conditions.
 
 :warning: **Note:** kubeteach is not designed to deploy it to a production cluster. I recommend to use [kind](https://kind.sigs.k8s.io/) to use kubeteach and learn kubernetes. There is **no** deletion job for created objects from exercises.
 
 :construction: **Kubeteach is still in a very early stage of development, which means it may not always be stable and major api changes are necessary.**
 
 ## Learn kubernetes with kubeteach
+
+:warning: Unfortunately, only a few tasks are currently available. More tasks will be added soon.
 
 ### Preparation
 
