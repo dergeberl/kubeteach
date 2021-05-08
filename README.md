@@ -5,18 +5,20 @@ Kubeteach is an operator build with [kubebuilder](https://github.com/kubernetes-
 The idea is to get tasks as a kubernetes object (custom resource) to learn how to interact with kubernetes and kubectl. 
 The operator will check if a task is successfully completed based in defined conditions.
 
-**Note:** kubeteach is not designed to deploy it to a production cluster. I recommend to use [kind](https://kind.sigs.k8s.io/) to use kubeteach and learn kubernetes. There is **no** deletion job for created objects from exercises.
+:warning: **Note:** kubeteach is not designed to deploy it to a production cluster. I recommend to use [kind](https://kind.sigs.k8s.io/) to use kubeteach and learn kubernetes. There is **no** deletion job for created objects from exercises.
 
-**Kubeteach is still in a very early stage of development, which means it may not always be stable and major api changes are necessary.**
+:construction: **Kubeteach is still in a very early stage of development, which means it may not always be stable and major api changes are necessary.**
 
-## Preparation
+## Learn kubernetes with kubeteach
+
+### Preparation
 
 To install kubeteach you need a kubernetes cluster. I recommend [kind](https://kind.sigs.k8s.io/) as a local environment, checkout the [kind quick start](https://kind.sigs.k8s.io/docs/user/quick-start/).
 
 You need also `kubectl` to interact with your cluster. Checkout the [install kubectl guide](https://kubernetes.io/de/docs/tasks/tools/install-kubectl/).
 
 
-## Installation
+### Installation
 
 To install kubeteach to your cluster, you have to deploy the operator itself by applying the deployment file in the `deployment` folder.
 ```bash
@@ -31,7 +33,7 @@ Now you can  deploy a set of exercises to your cluster.
 kubectl apply -f exercises/set1/
 ```
 
-## Usage
+### Usage
 
 You can get the tasks that should be performed with `kubectl`
 
@@ -84,7 +86,7 @@ For example `task01`: `Create a new namespace with the name kubeteach`
 kubectl create namespace kubeteach
 ```
 
-A few seconds later the task state is changed to `successful`
+A few seconds later the task state is changed to `successful`.
 
 ```bash
 kubectl get task task01            
@@ -96,8 +98,9 @@ The task state `pending` shows that another task must be successfully done befor
 
 If you need help you can take a look into the solution folder of the exercise set you user (for example `exercises/set1/solutions`)
 
+**An update to a new status can take up to 5 seconds**
 
-## How it works
+## How it works / How to write own exercises
 
 In the `exercise` folder is a set of `taskdefinitions` which describe a `task` and conditions to check if the task is successful.
 
@@ -107,7 +110,7 @@ If there is no `resourceCondition` the `taskCondition` is true if the object exi
 
 Each `resourceCondition` contains a `field` which should be checked, an `operator` (see table below) and a `value`.
 
-The `field` is a json path to find the field witch should be checked (it is based on [tidwall/gjson](https://github.com/tidwall/gjson)).
+The `field` is a json path to find the field witch should be checked. The json path is based on [tidwall/gjson](https://github.com/tidwall/gjson). Check out the [gjson](https://github.com/tidwall/gjson) repository for the syntax. There is also an [online playground](https://gjson.dev/) for test and evaluate a json path.
 
 
 | operators | description |
