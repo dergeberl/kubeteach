@@ -35,7 +35,7 @@ kubectl apply -f exercises/set1/
 
 ### Usage
 
-You can get the tasks that should be performed with `kubectl`
+You can get the tasks that should be performed with `kubectl get tasks`
 
 ```bash
 kubectl get tasks
@@ -104,14 +104,21 @@ If you need help you can take a look into the solution folder of the exercise se
 
 In the `exercise` folder is a set of `taskdefinitions` which describe a `task` and conditions to check if the task is successful.
 
+### taskCondition
+
 To check if the task is successful there is a list of `taskCondition`. 
-Each `taskCondition` describes an object (apiVersion, kind and name) and contains a list of `resourceCondition`.
-If there is no `resourceCondition` the `taskCondition` is true if the object exists.
+Each `taskCondition` describes an object (apiVersion, kind and name) and contains a list of `resourceCondition` (see below).
+If there is no `resourceCondition` the `taskCondition` is successful if the object exists.
+
+To check if an object doesn't exist you can use `spec.taskConditions.notExists` and set it to true. In this case all `resourceCondition` are ignored for this `taskCondition` and this `taskCondition` is successful if the kubernetes object does not exist.
+
+To depend on another task you can link a task as required with `spac.requiredTaskName`. This task will be in pending until the required task is successful. Be careful there is no check if the tasks can ever become active or are stuck in pending forever.
+
+### resourceCondition
 
 Each `resourceCondition` contains a `field` which should be checked, an `operator` (see table below) and a `value`.
 
 The `field` is a json path to find the field witch should be checked. The json path is based on [tidwall/gjson](https://github.com/tidwall/gjson). Check out the [gjson](https://github.com/tidwall/gjson) repository for the syntax. There is also an [online playground](https://gjson.dev/) for test and evaluate a json path.
-
 
 | operators | description |
 | --- | --- |
@@ -122,6 +129,10 @@ The `field` is a json path to find the field witch should be checked. The json p
 | nil | field is not set, value will be ignored |
 | notnil | field is set, value will be ignored |
 | contains | string is contained in field |
+
+If there are multiple `taskCondition` and `resourceCondition` then **all** must be successful to complete the task.
+
+### Example
 
 A simple example to check if a namespace is created:
 
@@ -144,11 +155,7 @@ spec:
           value: "kubeteach"
 ```
 
-To check if an object doesn't exist you can use `spec.taskdefiniton.notExists` and set it to true. 
-
-To depend on another task you can link a task as required with `spac.requiredTaskName`. This task will be in pending until the required task is successful. 
-
-Example, delete the created kubeteach namespace from task1:
+Example, delete the created kubeteach namespace from task1 (`notExists` and `requiredTaskName`):
 
 ```yaml
 apiVersion: kubeteach.geberl.io/v1alpha1
@@ -171,4 +178,4 @@ spec:
 
 Feedback and PRs are very welcome. For major changes, please open an issue beforehand to clarify if this is in line with the project and to avoid unnecessary work.
 
-New exercises or/an exercise sets are highly welcome, if you have ideas feel free to open a PR or issue.
+New exercises or/and exercise sets are highly welcome, if you have ideas feel free to open a PR or issue.
