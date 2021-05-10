@@ -1,0 +1,10 @@
+domain: geberl.io
+repo: github.com/dergeberl/kubeteach
+resources:
+- group: kubeteach
+  kind: TaskDefinition
+  version: v1alpha1
+- group: kubeteach
+  kind: Task
+  version: v1alpha1
+version: "2"

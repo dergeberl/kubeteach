@@ -1,0 +1,26 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  creationTimestamp: null
+  labels:
+    app: nginx-sa
+  name: nginx-sa
+  namespace: kubeteach
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nginx-sa
+  strategy: {}
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: nginx-sa
+    spec:
+      serviceAccountName: kubeteach-sa
+      containers:
+      - image: nginx:latest
+        name: nginx
+        resources: {}
+status: {}

@@ -1,0 +1,57 @@
+run:
+  deadline: 5m
+  skip-dirs:
+    - config
+    - bin
+    - hack
+    - vendor
+    - exercises
+
+linters-settings:
+  govet:
+    check-shadowing: true
+  gocyclo:
+    min-complexity: 12.0
+  maligned:
+    suggest-new: true
+  goconst:
+    min-len: 3.0
+    min-occurrences: 3.0
+  misspell:
+    locale: "US"
+  lll:
+    line-length: 140
+
+
+linters:
+  enable:
+    - bodyclose
+    - deadcode
+    - depguard
+    - errcheck
+    - gocritic
+    - gofmt
+    - goimports
+    - golint
+    - gomnd
+    - goprintffuncname
+    - gosec
+    - gosimple
+    - govet
+    - ineffassign
+    - lll
+    - misspell
+    - noctx
+    - nolintlint
+    - rowserrcheck
+    - structcheck
+    - stylecheck
+    - unused
+    - varcheck
+    - vet
+    - whitespace
+
+issues:
+  exclude-use-default: false
+  max-per-linter: 0
+  max-same-issues: 0

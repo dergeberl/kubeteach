@@ -1,0 +1,276 @@
+---
+apiVersion: kubeteach.geberl.io/v1alpha1
+kind: TaskDefinition
+metadata:
+  name: task01
+spec:
+  taskSpec:
+    title: "Create namespace"
+    description: "Create a new namespace with the name kubeteach"
+    helpURL: "https://kubernetes.io/docs/concepts/overview/working-with-objects/namespaces/"
+  taskCondition:
+    - apiVersion: v1
+      kind: Namespace
+      name: "kubeteach"
+---
+apiVersion: kubeteach.geberl.io/v1alpha1
+kind: TaskDefinition
+metadata:
+  name: task02
+spec:
+  taskSpec:
+    title: "Create pod"
+    description: "Create a pod in namespace kubeteach, name it pod1 and use nginx:latest as image"
+  requiredTaskName: task01
+  taskCondition:
+    - apiVersion: v1
+      kind: Pod
+      name: "pod1"
+      namespace: "kubeteach"
+      resourceCondition:
+        - field: "spec.containers.0.image"
+          operator: "eq"
+          value: "nginx:latest"
+---
+apiVersion: kubeteach.geberl.io/v1alpha1
+kind: TaskDefinition
+metadata:
+  name: task03
+spec:
+  taskSpec:
+    title: "Create deployment"
+    description: "Create a deployment with the name kubeteach-webserver in namespace kubeteach, 3 replicas and nginx:latest as image"
+    helpURL: "https://kubernetes.io/docs/concepts/workloads/controllers/deployment/"
+  requiredTaskName: task01
+  taskCondition:
+    - apiVersion: "apps/v1"
+      kind: Deployment
+      name: "kubeteach-webserver"
+      namespace: kubeteach
+      resourceCondition:
+        - field: "spec.template.spec.containers.0.image"
+          operator: "eq"
+          value: "nginx:latest"
+        - field: "spec.replicas"
+          operator: "eq"
+          value: "3"
+---
+apiVersion: kubeteach.geberl.io/v1alpha1
+kind: TaskDefinition
+metadata:
+  name: task04
+spec:
+  taskSpec:
+    title: "Scale deployment"
+    description: "Scale the deployment from task3 to 5 replicas"
+    helpURL: "https://kubernetes.io/docs/concepts/workloads/controllers/deployment/#scaling-a-deployment"
+  requiredTaskName: task03
+  taskCondition:
+    - apiVersion: "apps/v1"
+      kind: Deployment
+      name: "kubeteach-webserver"
+      namespace: kubeteach
+      resourceCondition:
+        - field: "spec.template.spec.containers.0.image"
+          operator: "eq"
+          value: "nginx:latest"
+        - field: "spec.replicas"
+          operator: "eq"
+          value: "5"
+---
+apiVersion: kubeteach.geberl.io/v1alpha1
+kind: TaskDefinition
+metadata:
+  name: task05
+spec:
+  taskSpec:
+    title: "Add port to deployment"
+    description: "Add a containerPort (TCP port 80) to the deployment from task3"
+  requiredTaskName: task04
+  taskCondition:
+    - apiVersion: "apps/v1"
+      kind: Deployment
+      name: "kubeteach-webserver"
+      namespace: kubeteach
+      resourceCondition:
+        - field: "spec.template.spec.containers.0.ports.#(containerPort==80).protocol"
+          operator: "eq"
+          value: "TCP"
+---
+apiVersion: kubeteach.geberl.io/v1alpha1
+kind: TaskDefinition
+metadata:
+  name: task06
+spec:
+  taskSpec:
+    title: "Create service for deployment"
+    description: "Create a service of type NodePort to export port 80 of the deployment from task3"
+    helpURL: "https://kubernetes.io/docs/concepts/services-networking/service/"
+  requiredTaskName: task03
+  taskCondition:
+    - apiVersion: "v1"
+      kind: Service
+      name: "kubeteach-webserver"
+      namespace: kubeteach
+      resourceCondition:
+        - field: "spec.ports.#(port==80).protocol"
+          operator: "eq"
+          value: "TCP"
+        - field: "spec.type"
+          operator: "eq"
+          value: "NodePort"
+---
+apiVersion: kubeteach.geberl.io/v1alpha1
+kind: TaskDefinition
+metadata:
+  name: task07
+spec:
+  taskSpec:
+    title: "Create configMap"
+    description: "Create a configMap with name colorconf in namespace kubeteach with value color=blue"
+    helpURL: "https://kubernetes.io/docs/concepts/configuration/configmap/"
+  requiredTaskName: task01
+  taskCondition:
+    - apiVersion: "v1"
+      kind: ConfigMap
+      name: "colorconf"
+      namespace: kubeteach
+      resourceCondition:
+        - field: "data.color"
+          operator: "eq"
+          value: "blue"
+---
+apiVersion: kubeteach.geberl.io/v1alpha1
+kind: TaskDefinition
+metadata:
+  name: task08
+spec:
+  taskSpec:
+    title: "Bind configmap data to pod"
+    description: "Create a new nginx:latest pod with name colorconf-pod in namespace kubeteach and use the configmap value color as environment variable COLOR"
+    helpURL: "https://kubernetes.io/docs/concepts/configuration/configmap/"
+  requiredTaskName: task07
+  taskCondition:
+    - apiVersion: "v1"
+      kind: Pod
+      name: "colorconf-pod"
+      namespace: kubeteach
+      resourceCondition:
+        - field: "spec.containers.0.env.#(name==COLOR).valueFrom.configMapKeyRef.name"
+          operator: "eq"
+          value: "colorconf"
+        - field: "spec.containers.0.env.#(name==COLOR).valueFrom.configMapKeyRef.key"
+          operator: "eq"
+          value: "color"
+---
+apiVersion: kubeteach.geberl.io/v1alpha1
+kind: TaskDefinition
+metadata:
+  name: task09
+spec:
+  taskSpec:
+    title: "Create serviceaccount"
+    description: "Create a new serviceaccount named kubeteach-sa in kubeteach namespace"
+    helpURL: "https://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account/"
+  requiredTaskName: task01
+  taskCondition:
+    - apiVersion: "v1"
+      kind: ServiceAccount
+      name: "kubeteach-sa"
+      namespace: kubeteach
+---
+apiVersion: kubeteach.geberl.io/v1alpha1
+kind: TaskDefinition
+metadata:
+  name: task10
+spec:
+  taskSpec:
+    title: "Use serviceaccount"
+    description: "Use the serviceaccount kubeteach-sa in a new deployment named nginx-sa with image nginx:latest in kubeteach namespace"
+    helpURL: "https://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account/"
+  requiredTaskName: task09
+  taskCondition:
+    - apiVersion: "apps/v1"
+      kind: Deployment
+      name: "nginx-sa"
+      namespace: kubeteach
+      resourceCondition:
+        - field: "spec.template.spec.containers.0.image"
+          operator: "eq"
+          value: "nginx:latest"
+        - field: "spec.template.spec.serviceAccountName"
+          operator: "eq"
+          value: "kubeteach-sa"
+---
+apiVersion: kubeteach.geberl.io/v1alpha1
+kind: TaskDefinition
+metadata:
+  name: task11
+spec:
+  taskSpec:
+    title: "Create role"
+    description: "Create a new role named kubeteach-pod-role in kubeteach namespace with permissions on pods (get, list, view)"
+    helpURL: "https://kubernetes.io/docs/reference/access-authn-authz/rbac/"
+  requiredTaskName: task10
+  taskCondition:
+    - apiVersion: "rbac.authorization.k8s.io/v1"
+      kind: Role
+      name: "kubeteach-pod-role"
+      namespace: kubeteach
+      resourceCondition:
+        - field: "rules.0.resources.0"
+          operator: "eq"
+          value: "pods"
+        - field: "rules.0.verbs.#"
+          operator: "eq"
+          value: "3"
+        - field: "rules.0.verbs"
+          operator: "contains"
+          value: "get"
+        - field: "rules.0.verbs"
+          operator: "contains"
+          value: "list"
+        - field: "rules.0.verbs"
+          operator: "contains"
+          value: "watch"
+---
+apiVersion: kubeteach.geberl.io/v1alpha1
+kind: TaskDefinition
+metadata:
+  name: task12
+spec:
+  taskSpec:
+    title: "Create rolebinding"
+    description: "Connect the role kubeteach-pod-role (task11) and serviceaccount nginx-sa (task9) in a rolebinding named kubeteach-rolebinding"
+    helpURL: "https://kubernetes.io/docs/reference/access-authn-authz/rbac/"
+  requiredTaskName: task11
+  taskCondition:
+    - apiVersion: "rbac.authorization.k8s.io/v1"
+      kind: RoleBinding
+      name: "kubeteach-rolebinding"
+      namespace: kubeteach
+      resourceCondition:
+        - field: "subjects.0.name"
+          operator: "eq"
+          value: "nginx-sa"
+        - field: "roleRef.name"
+          operator: "eq"
+          value: "kubeteach-pod-role"
+---
+apiVersion: kubeteach.geberl.io/v1alpha1
+kind: TaskDefinition
+metadata:
+  name: task13
+spec:
+  taskSpec:
+    title: "Fix broken deployment"
+    description: "In namespace kubeteach-troubleshoot is a deployment named fix-me, find the problem and fix this deployment"
+  taskCondition:
+    - apiVersion: "apps/v1"
+      kind: Deployment
+      name: "fix-me"
+      namespace: kubeteach-troubleshoot
+      resourceCondition:
+        - field: "spec.template.spec.containers.0.image"
+          operator: "contains"
+          value: "nginx"
