@@ -25,6 +25,14 @@ jobs:
         with:
           version: v1.29
           args: --modules-download-mode "vendor"
+      - name: gofmt-api
+        uses: Jerome1337/gofmt-action@v1.0.4
+        with:
+          gofmt-path: './api'
+      - name: gofmt-controllers
+        uses: Jerome1337/gofmt-action@v1.0.4
+        with:
+          gofmt-path: './controllers'
   test:
     needs: [ golangci ]
     runs-on: ubuntu-latest
@@ -40,4 +48,4 @@ jobs:
       - name: install-kubebuilder
         run: curl -L https://go.kubebuilder.io/dl/2.3.1/$(go env GOOS)/$(go env GOARCH)| tar -xz -C /tmp/ && sudo mv /tmp/kubebuilder_2.3.1_$(go env GOOS)_$(go env GOARCH) /usr/local/kubebuilder
       - uses: actions/checkout@v2
-      - run: go test -v -coverprofile=profile.cov ./...
+      - run: go test -coverprofile=profile.cov ./...
