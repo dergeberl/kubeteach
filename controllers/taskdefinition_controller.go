@@ -40,7 +40,7 @@ import (
 const (
 	stateActive     = "active"
 	stateSuccessful = "successful"
-        	statePending    = "pending"
+	statePending    = "pending"
 )
 
 // TaskDefinitionReconciler reconciles a TaskDefinition object
