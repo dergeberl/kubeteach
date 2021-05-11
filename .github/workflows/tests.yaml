@@ -1,0 +1,43 @@
+name: tests
+
+on:
+  push:
+    branches:
+      - main
+      - feature/*
+  pull_request:
+    branches: [ main ]
+jobs:
+  golangci:
+    name: lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-go@v1
+        with:
+         go-version: '1.16'
+      - name: go-vendor
+        run: go mod vendor
+      - name: golangci-lint
+        uses: golangci/golangci-lint-action@v2
+        env:
+          GOPRIVATE: github.com
+          GO111MODULE: "on"
+        with:
+          version: v1.29
+          args: --modules-download-mode "vendor"
+  test:
+    needs: [ golangci ]
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        go: ['1.15', '1.16']
+    steps:
+      - uses: actions/setup-go@v1
+        with:
+          go-version: ${{ matrix.go }}
+      - name: install-kubebuilder
+        run: curl -L https://go.kubebuilder.io/dl/2.3.1/$(go env GOOS)/$(go env GOARCH)| tar -xz -C /tmp/ && sudo mv /tmp/kubebuilder_2.3.1_$(go env GOOS)_$(go env GOARCH) /usr/local/kubebuilder
+      - uses: actions/checkout@v2
+      - run: go test -coverprofile=profile.cov ./...
