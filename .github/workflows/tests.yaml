@@ -2,10 +2,11 @@ name: tests
 
 on:
   push:
-#    branches: [ main ]
-#    tags: [ 'v*' ]
-#  pull_request:
-#    branches: [ main ]
+    branches:
+      - main
+      - feature/*
+  pull_request:
+    branches: [ main ]
 jobs:
   golangci:
     name: lint
