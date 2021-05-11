@@ -31,10 +31,13 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        go: ['1.13', '1.14', '1.15', '1.16']
+        #go: ['1.13', '1.14', '1.15', '1.16']
+        go: ['1.16']
     steps:
       - uses: actions/setup-go@v1
         with:
           go-version: ${{ matrix.go }}
+      - name: install-kubebuilder
+        run: curl -L https://go.kubebuilder.io/dl/2.3.1/$(go env GOOS)/$(go env GOARCH)| tar -xz -C /tmp/ && sudo mv /tmp/kubebuilder_2.3.1_$(go env GOOS)_$(go env GOARCH) /usr/local/kubebuilder
       - uses: actions/checkout@v2
       - run: go test -v -coverprofile=profile.cov ./...
