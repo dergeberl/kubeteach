@@ -20,12 +20,12 @@ jobs:
         run: go mod vendor
       - name: golangci-lint
         uses: golangci/golangci-lint-action@v2
-        env:
-          GOPRIVATE: github.com
-          GO111MODULE: "on"
+#        env:
+#          GOPRIVATE: github.com
+#          GO111MODULE: "on"
         with:
           version: v1.29
-          args: --modules-download-mode "vendor"
+#          args: --modules-download-mode "vendor"
   test:
     needs: [ golangci ]
     runs-on: ubuntu-latest
