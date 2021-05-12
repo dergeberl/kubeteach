@@ -7,25 +7,17 @@ on:
       - feature/*
   pull_request:
     branches: [ main ]
+
 jobs:
   golangci:
     name: lint
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - uses: actions/setup-go@v1
-        with:
-         go-version: '1.16'
-      - name: go-vendor
-        run: go mod vendor
       - name: golangci-lint
         uses: golangci/golangci-lint-action@v2
-        env:
-          GOPRIVATE: github.com
-          GO111MODULE: "on"
         with:
-          version: v1.29
-          args: --modules-download-mode "vendor"
+          version: v1.40
   test:
     needs: [ golangci ]
     runs-on: ubuntu-latest
@@ -41,3 +33,37 @@ jobs:
         run: curl -L https://go.kubebuilder.io/dl/2.3.1/$(go env GOOS)/$(go env GOARCH)| tar -xz -C /tmp/ && sudo mv /tmp/kubebuilder_2.3.1_$(go env GOOS)_$(go env GOARCH) /usr/local/kubebuilder
       - uses: actions/checkout@v2
       - run: go test -coverprofile=profile.cov ./...
+  deploy-test:
+    needs: [ test ]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Build docker image
+        id: docker_build
+        uses: docker/build-push-action@v2
+        with:
+          context: .
+          file: ./Dockerfile
+          push: false
+          tags: local-kind-test:test
+      - name: Create k8s Kind Cluster
+        uses: helm/kind-action@v1.1.0
+        with:
+          version: v0.10.0
+          cluster_name: kind
+      - name: Deploy kubeteach to kind cluster
+        run: |
+          kind load docker-image local-kind-test:test
+          cd config/manager && kustomize edit set image controller=local-kind-test:test
+          cd ../..
+          kustomize build config/default | kubectl apply -f -
+          kubectl apply -f .github/kind-test-taskdefinitions.yaml
+          sleep 15
+          kubectl get po -owide -n kubeteach-system
+          kubectl get deployments -n kubeteach-system  -o wide
+          kubectl get tasks -A
+      - name: Run test in kind cluster
+        run: |
+          kubectl get task task01 -o jsonpath='{.status.state}' | grep successful
+          kubectl get task task02 -o jsonpath='{.status.state}' | grep active
+          kubectl get task task03 -o jsonpath='{.status.state}' | grep pending
