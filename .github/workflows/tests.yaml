@@ -59,7 +59,7 @@ jobs:
         with:
           version: v0.10.0
           cluster_name: kind
-      - name: Run test in kind cluster
+      - name: Deploy kubeteach to kind cluster
         run: |
           kind load docker-image local-kind-test:test
           cd config/manager && kustomize edit set image controller=local-kind-test:test
@@ -67,5 +67,11 @@ jobs:
           kustomize build config/default | kubectl apply -f -
           kubectl apply -f .github/kind-test-taskdefinitions.yaml
           sleep 15
-          kubectl get po -A
+          kubectl get po -owide -n kubeteach-system
+          kubectl get deployments -n kubeteach-system  -o wide
           kubectl get tasks -A
+      - name: Run test in kind cluster
+        run: |
+          kubectl get task task01 -o jsonpath='{.status.state}' | grep successful
+          kubectl get task task02 -o jsonpath='{.status.state}' | grep active
+          kubectl get task task03 -o jsonpath='{.status.state}' | grep active
