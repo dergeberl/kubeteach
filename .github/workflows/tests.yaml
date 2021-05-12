@@ -16,16 +16,12 @@ jobs:
       - uses: actions/setup-go@v1
         with:
          go-version: '1.16'
-      - name: go-vendor
-        run: go mod vendor
+#      - name: go mod download
+#        run: go mod download
       - name: golangci-lint
         uses: golangci/golangci-lint-action@v2
-#        env:
-#          GOPRIVATE: github.com
-#          GO111MODULE: "on"
         with:
-          version: v1.29
-#          args: --modules-download-mode "vendor"
+          version: v1.40
   test:
     needs: [ golangci ]
     runs-on: ubuntu-latest
@@ -74,4 +70,4 @@ jobs:
         run: |
           kubectl get task task01 -o jsonpath='{.status.state}' | grep successful
           kubectl get task task02 -o jsonpath='{.status.state}' | grep active
-          kubectl get task task03 -o jsonpath='{.status.state}' | grep active
+          kubectl get task task03 -o jsonpath='{.status.state}' | grep pending
