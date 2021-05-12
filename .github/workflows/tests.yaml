@@ -58,7 +58,7 @@ jobs:
         uses: helm/kind-action@v1.1.0
         with:
           version: v0.10.0
-          name: kind
+          cluster_name: kind
       - name: Run test in kind cluster
         run: |
           kind load docker-image local-kind-test:test
