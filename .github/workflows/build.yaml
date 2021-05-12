@@ -4,17 +4,17 @@ on:
   push:
     branches:
       - 'main'
-      - 'feature/build-pipeline'
     tags:
       - 'v*'
 
 jobs:
   build:
-    environment: main
+    environment: build
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
-    - name: Docker meta
+    - name: Checkout
+      uses: actions/checkout@v2
+    - name: Generate docker metadata
       id: docker_meta
       uses: docker/metadata-action@v3
       with:
