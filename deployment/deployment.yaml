@@ -448,7 +448,7 @@ spec:
       containers:
       - args:
         - --enable-leader-election
-        image: dergeberl/kubeteach:latest
+        image: ghcr.io/dergeberl/kubeteach:latest
         name: manager
         resources:
           limits:
