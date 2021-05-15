@@ -24,17 +24,18 @@ import (
 // +kubebuilder:printcolumn:name="Status",type=string,JSONPath=`.status.state`
 // +kubebuilder:subresource:status
 
-// TaskDefinition is the Schema for the taskdefinitions API.
+// TaskDefinition is the Schema for the taskdefinitions API
 type TaskDefinition struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
-	Spec              TaskDefinitionSpec   `json:"spec,omitempty"`
-	Status            TaskDefinitionStatus `json:"status,omitempty"`
+
+	Spec   TaskDefinitionSpec   `json:"spec,omitempty"`
+	Status TaskDefinitionStatus `json:"status,omitempty"`
 }
 
-// +kubebuilder:object:root=true
+//+kubebuilder:object:root=true
 
-// TaskDefinitionList contains a list of TaskDefinition.
+// TaskDefinitionList contains a list of TaskDefinition
 type TaskDefinitionList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`

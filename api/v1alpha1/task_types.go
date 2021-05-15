@@ -35,7 +35,7 @@ type Task struct {
 	Status TaskStatus `json:"status,omitempty"`
 }
 
-// +kubebuilder:object:root=true
+//+kubebuilder:object:root=true
 
 // TaskList contains a list of Task
 type TaskList struct {

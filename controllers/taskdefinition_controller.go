@@ -14,7 +14,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-// Package controllers is a package of kubeteach and used for reconcile logic of kubernetes CRDs
 package controllers
 
 import (
@@ -31,7 +30,6 @@ import (
 	"k8s.io/client-go/tools/record"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 
 	teachv1alpha1 "github.com/dergeberl/kubeteach/api/v1alpha1"
 	"github.com/dergeberl/kubeteach/controllers/condition"
@@ -60,10 +58,9 @@ type TaskDefinitionReconciler struct {
 // +kubebuilder:rbac:groups="",resources=events,verbs=create;patch
 
 // Reconcile handles all about taskdefinitions and tasks
-func (r *TaskDefinitionReconciler) Reconcile(
-	req ctrl.Request,
-) (ctrl.Result, error) {
-	ctx := context.Background()
+func (r *TaskDefinitionReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
+	_ = r.Log.WithValues("taskdefinition", req.NamespacedName)
+
 	_ = r.Log.WithValues("taskdefinition", req.NamespacedName)
 
 	// get current taskDefinition
@@ -86,7 +83,7 @@ func (r *TaskDefinitionReconciler) Reconcile(
 	if taskDefinition.Status.State == nil {
 		err = r.setState(ctx, statePending, &taskDefinition)
 		if err != nil {
-			return reconcile.Result{}, err
+			return ctrl.Result{}, err
 		}
 		return ctrl.Result{Requeue: true}, nil
 	}
@@ -122,7 +119,7 @@ func (r *TaskDefinitionReconciler) Reconcile(
 	if status {
 		err = r.setState(ctx, stateSuccessful, &taskDefinition, &task)
 		if err != nil {
-			return reconcile.Result{}, err
+			return ctrl.Result{}, err
 		}
 		r.Recorder.Event(&task, "Normal", "Successful", "Task is successfully completed")
 		return ctrl.Result{}, nil
@@ -156,7 +153,7 @@ func (r *TaskDefinitionReconciler) checkPending(
 			r.Recorder.Event(task, "Normal", "Active", "Pre required task is successful, task is now active")
 			err = r.setState(ctx, stateActive, taskDefinition, task)
 			if err != nil {
-				return reconcile.Result{}, err
+				return ctrl.Result{}, err
 			}
 			return ctrl.Result{Requeue: true}, nil
 		}
@@ -169,7 +166,7 @@ func (r *TaskDefinitionReconciler) checkPending(
 	r.Recorder.Event(task, "Normal", "Active", "Task has no pre required task, task is now active")
 	err := r.setState(ctx, stateActive, taskDefinition, task)
 	if err != nil {
-		return reconcile.Result{}, err
+		return ctrl.Result{}, err
 	}
 	return ctrl.Result{Requeue: true}, nil
 }
@@ -247,7 +244,7 @@ func (r *TaskDefinitionReconciler) createOrUpdateTask(
 func (r *TaskDefinitionReconciler) setState(
 	ctx context.Context,
 	state string,
-	objects ...runtime.Object,
+	objects ...client.Object,
 ) error {
 	patch := []byte(`{"status":{"state":"` + state + `"}}`)
 	for _, object := range objects {
@@ -259,7 +256,7 @@ func (r *TaskDefinitionReconciler) setState(
 	return nil
 }
 
-// SetupWithManager is used by kubebuilder to init the controller loop
+// SetupWithManager sets up the controller with the Manager.
 func (r *TaskDefinitionReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&teachv1alpha1.TaskDefinition{}).

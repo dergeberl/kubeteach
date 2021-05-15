@@ -1,10 +1,24 @@
 domain: geberl.io
+layout:
+- go.kubebuilder.io/v3
+projectName: kubeteach
 repo: github.com/dergeberl/kubeteach
 resources:
-- group: kubeteach
-  kind: TaskDefinition
-  version: v1alpha1
-- group: kubeteach
+- api:
+    crdVersion: v1
+    namespaced: true
+  domain: geberl.io
+  group: kubeteach
   kind: Task
+  path: github.com/dergeberl/kubeteach/api/v1alpha1
   version: v1alpha1
-version: "2"
+- api:
+    crdVersion: v1
+    namespaced: true
+  controller: true
+  domain: geberl.io
+  group: kubeteach
+  kind: TaskDefinition
+  path: github.com/dergeberl/kubeteach/api/v1alpha1
+  version: v1alpha1
+version: "3"
