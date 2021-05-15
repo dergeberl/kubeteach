@@ -3,5 +3,74 @@ kind: ExerciseSet
 metadata:
   name: exerciseset-sample
 spec:
-  # Add fields here
-  foo: bar
+  taskDefinitions:
+    - name: task01
+      taskDefinitionSpec:
+        taskSpec:
+          title: "task01"
+          description: "task01 - should be successful"
+        taskCondition:
+          - apiVersion: v1
+            kind: Namespace
+            name: "task01"
+    - name: task02
+      taskDefinitionSpec:
+        points: 5
+        taskSpec:
+          title: "task02"
+          description: "task02 - should be successful"
+        requiredTaskName: task01
+        taskCondition:
+          - apiVersion: v1
+            kind: Namespace
+            name: "task02"
+    - name: task03
+      taskDefinitionSpec:
+        taskSpec:
+          title: "task03"
+          description: "task03 - should be successful"
+        requiredTaskName: task01
+        taskCondition:
+          - apiVersion: v1
+            kind: Namespace
+            name: "task03"
+    - name: task04
+      taskDefinitionSpec:
+        taskSpec:
+          title: "task04"
+          description: "task04 - should be successful"
+        requiredTaskName: task01
+        taskCondition:
+          - apiVersion: v1
+            kind: Namespace
+            name: "task04"
+    - name: task05
+      taskDefinitionSpec:
+        taskSpec:
+          title: "task05"
+          description: "task04 - should be successful"
+        requiredTaskName: task01
+        taskCondition:
+          - apiVersion: v1
+            kind: Namespace
+            name: "task05"
+    - name: task06
+      taskDefinitionSpec:
+        taskSpec:
+          title: "task06"
+          description: "task04 - should be successful"
+        requiredTaskName: task01
+        taskCondition:
+          - apiVersion: v1
+            kind: Namespace
+            name: "task06"
+    - name: task07
+      taskDefinitionSpec:
+        taskSpec:
+          title: "task07"
+          description: "task07 - should be successful"
+        requiredTaskName: task01
+        taskCondition:
+          - apiVersion: v1
+            kind: Namespace
+            name: "task07"

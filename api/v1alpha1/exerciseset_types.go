@@ -20,24 +20,6 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-// EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
-// NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
-
-// ExerciseSetSpec defines the desired state of ExerciseSet
-type ExerciseSetSpec struct {
-	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
-	// Important: Run "make" to regenerate code after modifying this file
-
-	// Foo is an example field of ExerciseSet. Edit exerciseset_types.go to remove/update
-	Foo string `json:"foo,omitempty"`
-}
-
-// ExerciseSetStatus defines the observed state of ExerciseSet
-type ExerciseSetStatus struct {
-	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
-	// Important: Run "make" to regenerate code after modifying this file
-}
-
 //+kubebuilder:object:root=true
 //+kubebuilder:subresource:status
 
@@ -57,6 +39,52 @@ type ExerciseSetList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`
 	Items           []ExerciseSet `json:"items"`
+}
+
+// ExerciseSetSpec defines the desired state of ExerciseSet
+type ExerciseSetSpec struct {
+	// TaskDefinitionSpec represents the Spec of an TaskDefinition
+	// +kubebuilder:validation:Required
+	TaskDefinitions []ExerciseSetSpecTaskDefinitions `json:"taskDefinitions,omitempty"`
+}
+
+// ExerciseSetSpecTaskDefinitions defines the desired state of ExerciseSet
+type ExerciseSetSpecTaskDefinitions struct {
+	// Name is the name of the TaskDefinition
+	// +kubebuilder:validation:Required
+	// +kubebuilder:validation:MinLength=1
+	Name string `json:"name"`
+	// TaskDefinitionSpec represents the Spec of an TaskDefinition
+	// +kubebuilder:validation:Required
+	TaskDefinitionSpec TaskDefinitionSpec `json:"taskDefinitionSpec"`
+}
+
+// ExerciseSetStatus defines the observed state of ExerciseSet
+type ExerciseSetStatus struct {
+	// NumberOfTasks TODO
+	// +optional
+	NumberOfTasks int `json:"numberOfTasks,omitempty"`
+	// NumberOfActiveTasks TODO
+	// +optional
+	NumberOfActiveTasks int `json:"numberOfActiveTasks,omitempty"`
+	// NumberOfPendingTasks TODO
+	// +optional
+	NumberOfPendingTasks int `json:"numberOfPendingTasks,omitempty"`
+	// NumberOfSuccessfulTasks TODO
+	// +optional
+	NumberOfSuccessfulTasks int `json:"numberOfSuccessfulTasks,omitempty"`
+	// NumberOfSuccessfulTasks TODO
+	// +optional
+	NumberOfUnknownTasks int `json:"numberOfUnknownTasks,omitempty"`
+	// NumberOfTasksWithoutPoints TODO
+	// +optional
+	NumberOfTasksWithoutPoints int `json:"numberOfTasksWithoutPoints,omitempty"`
+	// PointsTotal TODO
+	// +optional
+	PointsTotal int `json:"pointsTotal,omitempty"`
+	// PointsAchieved TODO
+	// +optional
+	PointsAchieved int `json:"pointsAchieved,omitempty"`
 }
 
 func init() {

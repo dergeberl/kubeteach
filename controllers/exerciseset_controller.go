@@ -18,6 +18,10 @@ package controllers
 
 import (
 	"context"
+	"encoding/json"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/types"
+	"reflect"
 
 	"github.com/go-logr/logr"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -38,21 +42,111 @@ type ExerciseSetReconciler struct {
 //+kubebuilder:rbac:groups=kubeteach.geberl.io,resources=exercisesets/status,verbs=get;update;patch
 //+kubebuilder:rbac:groups=kubeteach.geberl.io,resources=exercisesets/finalizers,verbs=update
 
-// Reconcile is part of the main kubernetes reconciliation loop which aims to
-// move the current state of the cluster closer to the desired state.
-// TODO(user): Modify the Reconcile function to compare the state specified by
-// the ExerciseSet object against the actual cluster state, and then
-// perform operations to make the cluster state reflect the state specified by
-// the user.
-//
-// For more details, check Reconcile and its Result here:
-// - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.7.2/pkg/reconcile
+// Reconcile handles reconcile of an ExersiceSet
 func (r *ExerciseSetReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	_ = r.Log.WithValues("exerciseset", req.NamespacedName)
 
-	// your logic here
+	var exerciseSet kubeteachv1alpha1.ExerciseSet
+	err := r.Client.Get(ctx, req.NamespacedName, &exerciseSet)
+	if err != nil {
+		return ctrl.Result{}, client.IgnoreNotFound(err)
+	}
 
-	return ctrl.Result{}, nil
+	var newExerciseSetStatus kubeteachv1alpha1.ExerciseSetStatus
+
+	for _, taskDefinition := range exerciseSet.Spec.TaskDefinitions {
+		var taskDefinitionObject kubeteachv1alpha1.TaskDefinition
+		err = r.Client.Get(ctx, client.ObjectKey{Name: taskDefinition.Name, Namespace: req.Namespace}, &taskDefinitionObject)
+		if err != nil {
+			if client.IgnoreNotFound(err) != nil {
+				return ctrl.Result{}, err
+			}
+			taskDefinitionObject = kubeteachv1alpha1.TaskDefinition{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      taskDefinition.Name,
+					Namespace: req.Namespace,
+					OwnerReferences: []metav1.OwnerReference{{
+						APIVersion: exerciseSet.APIVersion,
+						Kind:       exerciseSet.Kind,
+						Name:       exerciseSet.Name,
+						UID:        exerciseSet.UID,
+					}},
+				},
+				Spec: taskDefinition.TaskDefinitionSpec,
+			}
+			err = r.Client.Create(ctx, &taskDefinitionObject)
+			if err != nil {
+				return ctrl.Result{}, err
+			}
+		}
+
+		// update TaskDefinition if needed
+		if !reflect.DeepEqual(taskDefinitionObject.Spec, taskDefinition.TaskDefinitionSpec) {
+			taskDefinitionObject.Spec = taskDefinition.TaskDefinitionSpec
+			err = r.Client.Update(ctx, &taskDefinitionObject)
+			if err != nil {
+				return ctrl.Result{}, err
+			}
+		}
+
+		if !reflect.DeepEqual(taskDefinitionObject.OwnerReferences, []metav1.OwnerReference{{
+			APIVersion: exerciseSet.APIVersion,
+			Kind:       exerciseSet.Kind,
+			Name:       exerciseSet.Name,
+			UID:        exerciseSet.UID,
+		}}) {
+			taskDefinitionObject.OwnerReferences = []metav1.OwnerReference{{
+				APIVersion: exerciseSet.APIVersion,
+				Kind:       exerciseSet.Kind,
+				Name:       exerciseSet.Name,
+				UID:        exerciseSet.UID,
+			}}
+			err = r.Client.Update(ctx, &taskDefinitionObject)
+			if err != nil {
+				return ctrl.Result{}, err
+			}
+		}
+
+		// count status infos
+		newExerciseSetStatus.NumberOfTasks++
+		if taskDefinitionObject.Status.State != nil {
+			switch *taskDefinitionObject.Status.State {
+			case stateActive:
+				newExerciseSetStatus.NumberOfActiveTasks++
+			case statePending:
+				newExerciseSetStatus.NumberOfPendingTasks++
+			case stateSuccessful:
+				newExerciseSetStatus.NumberOfSuccessfulTasks++
+			}
+		} else {
+			newExerciseSetStatus.NumberOfUnknownTasks++
+		}
+
+		newExerciseSetStatus.PointsTotal += taskDefinition.TaskDefinitionSpec.Points
+		if taskDefinition.TaskDefinitionSpec.Points == 0 {
+			newExerciseSetStatus.NumberOfTasksWithoutPoints++
+		}
+		if taskDefinitionObject.Status.State != nil &&
+			*taskDefinitionObject.Status.State == stateSuccessful {
+			newExerciseSetStatus.PointsAchieved += taskDefinition.TaskDefinitionSpec.Points
+		}
+	}
+
+	// update status if needed
+	if !reflect.DeepEqual(exerciseSet.Status, newExerciseSetStatus) {
+		var statusJason []byte
+		statusJason, err = json.Marshal(newExerciseSetStatus)
+		if err != nil {
+			return ctrl.Result{}, err
+		}
+		patch := []byte(`{"status":` + string(statusJason) + `}`)
+		err = r.Client.Status().Patch(ctx, &exerciseSet, client.RawPatch(types.MergePatchType, patch))
+		if err != nil {
+			return ctrl.Result{}, err
+		}
+	}
+
+	return ctrl.Result{RequeueAfter: 5}, nil
 }
 
 // SetupWithManager sets up the controller with the Manager.

@@ -16,6 +16,32 @@ rules:
 - apiGroups:
   - kubeteach.geberl.io
   resources:
+  - exercisesets
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - kubeteach.geberl.io
+  resources:
+  - exercisesets/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - kubeteach.geberl.io
+  resources:
+  - exercisesets/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - kubeteach.geberl.io
+  resources:
   - taskdefinitions
   verbs:
   - create
