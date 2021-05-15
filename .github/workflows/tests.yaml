@@ -32,12 +32,11 @@ jobs:
       - uses: actions/checkout@v2
       - name: install-test-tools-and-go-test
         run: |
-          export ENVTEST_ASSETS_DIR=$(shell pwd)/testbin
-          mkdir -p ${ENVTEST_ASSETS_DIR}
-          test -f ${ENVTEST_ASSETS_DIR}/setup-envtest.sh || curl -sSLo ${ENVTEST_ASSETS_DIR}/setup-envtest.sh https://raw.githubusercontent.com/kubernetes-sigs/controller-runtime/v0.7.2/hack/setup-envtest.sh
-          source ${ENVTEST_ASSETS_DIR}/setup-envtest.sh
-          fetch_envtest_tools $(ENVTEST_ASSETS_DIR)
-          setup_envtest_env $(ENVTEST_ASSETS_DIR)
+          mkdir -p ./testbin
+          test -f ./testbin/setup-envtest.sh || curl -sSLo ./testbin/setup-envtest.sh https://raw.githubusercontent.com/kubernetes-sigs/controller-runtime/v0.7.2/hack/setup-envtest.sh
+          source ./testbin/setup-envtest.sh
+          fetch_envtest_tools ./testbin
+          setup_envtest_env ./testbin
           go test ./... -coverprofile cover.out
       - name: Send coverage
         uses: shogo82148/actions-goveralls@v1
