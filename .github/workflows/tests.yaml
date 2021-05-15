@@ -33,6 +33,19 @@ jobs:
         run: curl -L https://go.kubebuilder.io/dl/2.3.1/$(go env GOOS)/$(go env GOARCH)| tar -xz -C /tmp/ && sudo mv /tmp/kubebuilder_2.3.1_$(go env GOOS)_$(go env GOARCH) /usr/local/kubebuilder
       - uses: actions/checkout@v2
       - run: go test -coverprofile=profile.cov ./...
+      - name: Send coverage
+        uses: shogo82148/actions-goveralls@v1
+        with:
+          path-to-profile: profile.cov
+          flag-name: Go-${{ matrix.go }}
+          parallel: true
+  coveralls-finish:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: shogo82148/actions-goveralls@v1
+        with:
+          parallel-finished: true
   deploy-test:
     needs: [ test ]
     runs-on: ubuntu-latest
