@@ -1,8 +1,15 @@
 # kubeteach
 
+[![Go Report Card](https://goreportcard.com/badge/github.com/dergeberl/kubeteach)](https://goreportcard.com/report/github.com/dergeberl/kubeteach)
+[![Licence](https://img.shields.io/github/license/dergeberl/kubeteach)](https://github.com/dergeberl/kubeteach/blob/main/LICENSE)
+[![Latest release](https://img.shields.io/github/v/release/dergeberl/kubeteach?include_prereleases)](https://github.com/dergeberl/kubeteach/releases)
+[![Coverage Status](https://coveralls.io/repos/github/dergeberl/kubeteach/badge.svg?branch=main)](https://coveralls.io/github/dergeberl/kubeteach?branch=main)
+[![Test status](https://img.shields.io/github/workflow/status/dergeberl/kubeteach/tests/main?label=test)](https://github.com/dergeberl/kubeteach/actions?query=branch%3Amain++workflow%3Atests++)
+[![Build status](https://img.shields.io/github/workflow/status/dergeberl/kubeteach/build/main?label=build)](https://github.com/dergeberl/kubeteach/actions?query=branch%3Amain++workflow%3Abuild++)
+
 Kubeteach is an operator build with [kubebuilder](https://github.com/kubernetes-sigs/kubebuilder) to learn kubernetes in kubernetes.
 
-Kubeteach was created because I wanted to improve my golang and kubernetes operator knowledge. I came across kubebuilder and had the idea to learn Kubernetes in kubernetes.
+Kubeteach was created because I wanted to improve my golang and kubernetes operator knowledge. I came across kubebuilder and had the idea to learn kubernetes in kubernetes.
 
 The idea is to get tasks as a kubernetes objects (custom resource) to learn how to interact with kubernetes/kubectl while solving tasks in the kubernetes cluster.
 Kubeteach checks whether a task has been completed successfully based on defined conditions.
