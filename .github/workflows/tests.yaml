@@ -38,7 +38,7 @@ jobs:
       - name: Send coverage
         uses: shogo82148/actions-goveralls@v1
         with:
-          path-to-profile: cover.cov
+          path-to-profile: cover.out
           flag-name: Go-${{ matrix.go }}
           parallel: true
   coveralls-finish:
@@ -49,7 +49,7 @@ jobs:
         with:
           parallel-finished: true
   deploy-test:
-    needs: [ test ]
+    needs: [ golangci, test ]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
