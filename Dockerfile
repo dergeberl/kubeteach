@@ -1,5 +1,5 @@
 # Build the manager binary
-FROM golang:1.16 as builder
+FROM golang:1.15 as builder
 
 WORKDIR /workspace
 # Copy the Go Modules manifests
@@ -25,6 +25,6 @@ LABEL org.opencontainers.image.source=https://github.com/dergeberl/kubeteach
 
 WORKDIR /
 COPY --from=builder /workspace/kubeteach .
-USER nonroot:nonroot
+USER 65532:65532
 
 ENTRYPOINT ["/kubeteach"]

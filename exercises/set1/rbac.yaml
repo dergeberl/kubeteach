@@ -42,5 +42,5 @@ roleRef:
   name: set1
 subjects:
   - kind: ServiceAccount
-    name: default
+    name: kubeteach-controller-manager
     namespace: kubeteach-system

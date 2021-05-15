@@ -3,15 +3,15 @@ package controllers
 import (
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/runtime"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	teachv1alpha1 "github.com/dergeberl/kubeteach/api/v1alpha1"
 )
 
 type testData struct {
 	state          string
-	initialDeploy  runtime.Object
-	solution       runtime.Object
+	initialDeploy  client.Object
+	solution       client.Object
 	taskDefinition teachv1alpha1.TaskDefinition
 }
 

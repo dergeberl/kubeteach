@@ -41,7 +41,6 @@ linters:
     - ineffassign
     - lll
     - misspell
-    - noctx
     - nolintlint
     - rowserrcheck
     - structcheck
