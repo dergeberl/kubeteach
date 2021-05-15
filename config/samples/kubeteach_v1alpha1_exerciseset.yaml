@@ -1,0 +1,7 @@
+apiVersion: kubeteach.geberl.io/v1alpha1
+kind: ExerciseSet
+metadata:
+  name: exerciseset-sample
+spec:
+  # Add fields here
+  foo: bar
