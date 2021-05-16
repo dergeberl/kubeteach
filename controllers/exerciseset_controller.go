@@ -18,7 +18,7 @@ package controllers
 
 import (
 	"context"
-	"encoding/json"
+	"fmt"
 	"reflect"
 	"time"
 
@@ -122,6 +122,7 @@ func (r *ExerciseSetReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 			}
 		} else {
 			newExerciseSetStatus.NumberOfUnknownTasks++
+			r.Log.Info("Task is in UnknownState", "taskname", taskDefinitionObject.Name)
 		}
 
 		newExerciseSetStatus.PointsTotal += taskDefinition.TaskDefinitionSpec.Points
@@ -136,12 +137,16 @@ func (r *ExerciseSetReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 
 	// update status if needed
 	if !reflect.DeepEqual(exerciseSet.Status, newExerciseSetStatus) {
-		var statusJason []byte
-		statusJason, err = json.Marshal(newExerciseSetStatus)
-		if err != nil {
-			return ctrl.Result{}, err
-		}
-		patch := []byte(`{"status":` + string(statusJason) + `}`)
+		patch := []byte(`{"status": {` +
+			`"numberOfTasks": ` + fmt.Sprint(newExerciseSetStatus.NumberOfTasks) + `, ` +
+			`"numberOfActiveTasks": ` + fmt.Sprint(newExerciseSetStatus.NumberOfActiveTasks) + `, ` +
+			`"numberOfPendingTasks": ` + fmt.Sprint(newExerciseSetStatus.NumberOfPendingTasks) + `, ` +
+			`"numberOfSuccessfulTasks": ` + fmt.Sprint(newExerciseSetStatus.NumberOfSuccessfulTasks) + `, ` +
+			`"numberOfUnknownTasks": ` + fmt.Sprint(newExerciseSetStatus.NumberOfUnknownTasks) + `, ` +
+			`"numberOfTasksWithoutPoints": ` + fmt.Sprint(newExerciseSetStatus.NumberOfTasksWithoutPoints) + `, ` +
+			`"pointsTotal": ` + fmt.Sprint(newExerciseSetStatus.PointsTotal) + `, ` +
+			`"pointsAchieved": ` + fmt.Sprint(newExerciseSetStatus.PointsAchieved) + `}}`)
+		r.Log.Info("update status", "newStatus", string(patch))
 		err = r.Client.Status().Patch(ctx, &exerciseSet, client.RawPatch(types.MergePatchType, patch))
 		if err != nil {
 			return ctrl.Result{}, err

@@ -8,17 +8,23 @@ import (
 	teachv1alpha1 "github.com/dergeberl/kubeteach/api/v1alpha1"
 )
 
-type testData struct {
+type testDataTaskDefinition struct {
 	state          string
 	initialDeploy  client.Object
 	solution       client.Object
 	taskDefinition teachv1alpha1.TaskDefinition
 }
 
+type testDataExerciseSet struct {
+	status        teachv1alpha1.ExerciseSetStatus
+	initialDeploy []client.Object
+	exerciseSet   teachv1alpha1.ExerciseSet
+}
+
 var requireTask1 = "task1"
 var requireTask4 = "task4-require"
 
-var tests = []testData{
+var testsTaskDefinition = []testDataTaskDefinition{
 	{
 		solution:      &v1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: "test1"}},
 		initialDeploy: nil,
@@ -146,6 +152,161 @@ var tests = []testData{
 					},
 				}},
 				RequiredTaskName: &requireTask4,
+			},
+		},
+	},
+}
+var requiredTaskNameExerciseSet1 = "exerciseset1-3"
+var testsExerciseSet = testDataExerciseSet{
+	status: teachv1alpha1.ExerciseSetStatus{
+		NumberOfTasks:              6,
+		NumberOfActiveTasks:        3,
+		NumberOfPendingTasks:       1,
+		NumberOfSuccessfulTasks:    2,
+		NumberOfUnknownTasks:       0,
+		NumberOfTasksWithoutPoints: 2,
+		PointsTotal:                10,
+		PointsAchieved:             3,
+	},
+	initialDeploy: []client.Object{
+		&v1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: "exerciseset1-1"}},
+		&v1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: "exerciseset1-2"}},
+	},
+	exerciseSet: teachv1alpha1.ExerciseSet{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "exerciseset1",
+			Namespace: "default",
+		},
+		Spec: teachv1alpha1.ExerciseSetSpec{
+			TaskDefinitions: []teachv1alpha1.ExerciseSetSpecTaskDefinitions{
+				{
+					Name: "exerciseset1-1",
+					TaskDefinitionSpec: teachv1alpha1.TaskDefinitionSpec{
+						TaskSpec: teachv1alpha1.TaskSpec{
+							Title:       "exerciseset1-1",
+							Description: "exerciseset1-1",
+						},
+						TaskConditions: []teachv1alpha1.TaskCondition{{
+							APIVersion: "v1",
+							Kind:       "Namespace",
+							APIGroup:   "",
+							Name:       "exerciseset1-1",
+							ResourceCondition: []teachv1alpha1.ResourceCondition{{
+								Field:    "metadata.name",
+								Operator: "eq",
+								Value:    "exerciseset1-1",
+							},
+							},
+						}},
+						Points: 1,
+					},
+				}, {
+					Name: "exerciseset1-2",
+					TaskDefinitionSpec: teachv1alpha1.TaskDefinitionSpec{
+						TaskSpec: teachv1alpha1.TaskSpec{
+							Title:       "exerciseset1-2",
+							Description: "exerciseset1-2",
+						},
+						TaskConditions: []teachv1alpha1.TaskCondition{{
+							APIVersion: "v1",
+							Kind:       "Namespace",
+							APIGroup:   "",
+							Name:       "exerciseset1-2",
+							ResourceCondition: []teachv1alpha1.ResourceCondition{{
+								Field:    "metadata.name",
+								Operator: "eq",
+								Value:    "exerciseset1-2",
+							},
+							},
+						}},
+						Points: 2,
+					},
+				}, {
+					Name: "exerciseset1-3",
+					TaskDefinitionSpec: teachv1alpha1.TaskDefinitionSpec{
+						TaskSpec: teachv1alpha1.TaskSpec{
+							Title:       "exerciseset1-3",
+							Description: "exerciseset1-3",
+						},
+						TaskConditions: []teachv1alpha1.TaskCondition{{
+							APIVersion: "v1",
+							Kind:       "Namespace",
+							APIGroup:   "",
+							Name:       "exerciseset1-3",
+							ResourceCondition: []teachv1alpha1.ResourceCondition{{
+								Field:    "metadata.name",
+								Operator: "eq",
+								Value:    "exerciseset1-3",
+							},
+							},
+						}},
+						Points: 3,
+					},
+				}, {
+					Name: "exerciseset1-4",
+					TaskDefinitionSpec: teachv1alpha1.TaskDefinitionSpec{
+						TaskSpec: teachv1alpha1.TaskSpec{
+							Title:       "exerciseset1-4",
+							Description: "exerciseset1-4",
+						},
+						TaskConditions: []teachv1alpha1.TaskCondition{{
+							APIVersion: "v1",
+							Kind:       "Namespace",
+							APIGroup:   "",
+							Name:       "exerciseset1-4",
+							ResourceCondition: []teachv1alpha1.ResourceCondition{{
+								Field:    "metadata.name",
+								Operator: "eq",
+								Value:    "exerciseset1-4",
+							},
+							},
+						}},
+						Points:           4,
+						RequiredTaskName: &requiredTaskNameExerciseSet1,
+					},
+				}, {
+					Name: "exerciseset1-5",
+					TaskDefinitionSpec: teachv1alpha1.TaskDefinitionSpec{
+						TaskSpec: teachv1alpha1.TaskSpec{
+							Title:       "exerciseset1-5",
+							Description: "exerciseset1-5",
+						},
+						TaskConditions: []teachv1alpha1.TaskCondition{{
+							APIVersion: "v1",
+							Kind:       "Namespace",
+							APIGroup:   "",
+							Name:       "exerciseset1-5",
+							ResourceCondition: []teachv1alpha1.ResourceCondition{{
+								Field:    "metadata.name",
+								Operator: "eq",
+								Value:    "exerciseset1-5",
+							},
+							},
+						}},
+						Points: 0,
+					},
+				}, {
+					Name: "exerciseset1-6",
+					TaskDefinitionSpec: teachv1alpha1.TaskDefinitionSpec{
+						TaskSpec: teachv1alpha1.TaskSpec{
+							Title:       "exerciseset1-6",
+							Description: "exerciseset1-6",
+						},
+						TaskConditions: []teachv1alpha1.TaskCondition{{
+							APIVersion: "v1",
+							Kind:       "Namespace",
+							APIGroup:   "",
+							Name:       "exerciseset1-6",
+							ResourceCondition: []teachv1alpha1.ResourceCondition{{
+								Field:    "metadata.name",
+								Operator: "eq",
+								Value:    "exerciseset1-6",
+							},
+							},
+						}},
+						Points: 0,
+					},
+				},
 			},
 		},
 	},

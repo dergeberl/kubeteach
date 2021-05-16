@@ -36,13 +36,13 @@ var _ = Describe("TaskConditions tests", func() {
 		ctx := context.Background()
 
 		It("apply taskDefinitions", func() {
-			for _, test := range tests {
+			for _, test := range testsTaskDefinition {
 				Expect(k8sClient.Create(ctx, &test.taskDefinition)).Should(Succeed())
 			}
 		})
 
 		It("apply initial test objects", func() {
-			for _, test := range tests {
+			for _, test := range testsTaskDefinition {
 				if test.initialDeploy == nil {
 					continue
 				}
@@ -51,7 +51,7 @@ var _ = Describe("TaskConditions tests", func() {
 		})
 
 		It("check state after initial objects", func() {
-			for _, testdata := range tests {
+			for _, testdata := range testsTaskDefinition {
 				curTask := &teachv1alpha1.Task{}
 				Eventually(func() error {
 					err := k8sClient.Get(ctx,
@@ -101,7 +101,7 @@ var _ = Describe("TaskConditions tests", func() {
 		})
 
 		It("apply solutions", func() {
-			for _, test := range tests {
+			for _, test := range testsTaskDefinition {
 				if test.solution != nil {
 					Expect(k8sClient.Create(ctx, test.solution)).Should(Succeed())
 				}
@@ -109,7 +109,7 @@ var _ = Describe("TaskConditions tests", func() {
 		})
 
 		It("check if every test is successful", func() {
-			for _, test := range tests {
+			for _, test := range testsTaskDefinition {
 				By(test.taskDefinition.Name)
 				curTask := &teachv1alpha1.TaskDefinition{}
 				Eventually(func() error {
@@ -132,13 +132,13 @@ var _ = Describe("TaskConditions tests", func() {
 		})
 
 		It("delete all tests", func() {
-			for _, test := range tests {
+			for _, test := range testsTaskDefinition {
 				Expect(k8sClient.Delete(ctx, &test.taskDefinition)).Should(Succeed())
 			}
 		})
 
 		It("check deletion", func() {
-			for _, test := range tests {
+			for _, test := range testsTaskDefinition {
 				Eventually(func() error {
 					curTask := &teachv1alpha1.TaskDefinition{}
 					err := k8sClient.Get(ctx,
