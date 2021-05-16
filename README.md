@@ -111,13 +111,13 @@ If you need help you can take a look into the solution folder of the exercise se
 
 ## How it works / How to write own exercises
 
-### exerciseSet (optional)
+### ExerciseSet (optional)
 
-An `exerciseSet` contains one or multiple `taskDefinitions` to group them together and get some metadata from this `taskDefinitions`.
+This is optional you can create directly `TaskDefinition`.
 
-This is optional you can create directly `taskDefinitions`.
+An `ExerciseSet` contains one or multiple `TaskDefinitions` to group them together and get some metadata from this `TaskDefinition`'s.
 
-An `exerciseSet` contains multiple `taskDefinitions` with a name (name of the `taskDefinition` object) and a `taskDefinitionSpec` (spec of the `taskDefinition`, see below).
+Each `spec.taskDefinitions` consists of a `name` (name of the `TaskDefinition` object) and a `taskDefinitionSpec` (spec of the `TaskDefinition`, see below).
 
 #### Example
 
@@ -152,7 +152,7 @@ spec:
 
 #### Status
 
-The `exerciseSet` status contains some metadata information if the tasks.
+The `ExerciseSet` status contains some metadata information of the tasks.
 
 ```yaml
 ...
@@ -168,9 +168,23 @@ status:
 ...
 ```
 
-### taskDefinitions
+### TaskDefinition
 
-A `taskDefinitions` describes a `task` and conditions to check if the task is successful.
+A `TaskDefinition` describes a `Task` and conditions to check if the task is successful.
+
+#### taskSpec
+
+The `taskSpec` will be copied to the `Task` and is the object which is used for solving tasks. It should contain all information which are needed to solve the `Task`.
+
+The following fields are available:
+- `title` - title of the task
+- `description` - description of the task which is shown by `kubectl get tasks`
+- `longDescription` (optional) - longer description of the task which is shown by `kubectl describe tasks`
+- `helpURL` (optional) - an url to more information about the topic in the task
+
+#### points
+
+`points` is an optional field which is only used if the `TaskDefinition` is created by an `ExerciseSet` to sum all points inside the `ExerciseSet`-status.
 
 #### taskCondition
 
