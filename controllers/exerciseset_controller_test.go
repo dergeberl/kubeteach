@@ -123,5 +123,9 @@ var _ = Describe("ExerciseSet tests", func() {
 				return errors.New("no update")
 			}, timeout, retry).Should(Succeed())
 		})
+
+		It("test clean up", func() {
+			Expect(k8sClient.Delete(ctx, &testsExerciseSet.exerciseSet)).Should(Succeed())
+		})
 	})
 })

@@ -69,10 +69,7 @@ func (r *TaskDefinitionReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 	err := r.Client.Get(ctx, req.NamespacedName, &taskDefinition)
 	if err != nil {
 		// ignore taskdefinitons that dose not exists
-		if errors.IsNotFound(err) {
-			return ctrl.Result{}, nil
-		}
-		return ctrl.Result{}, err
+		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
 
 	// skip delete objects

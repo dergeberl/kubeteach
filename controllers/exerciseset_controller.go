@@ -52,6 +52,7 @@ func (r *ExerciseSetReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 	var exerciseSet kubeteachv1alpha1.ExerciseSet
 	err := r.Client.Get(ctx, req.NamespacedName, &exerciseSet)
 	if err != nil {
+		// ignore ExerciseSet that dose not exists
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
 

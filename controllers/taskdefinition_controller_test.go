@@ -20,10 +20,14 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
 	"time"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+
+	v1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
@@ -150,6 +154,48 @@ var _ = Describe("TaskConditions tests", func() {
 					return client.IgnoreNotFound(err)
 				}, timeout, retry).Should(Succeed())
 			}
+		})
+
+		It("check failed condition event", func() {
+			taskDefinition := teachv1alpha1.TaskDefinition{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      "failed-condition",
+					Namespace: "default",
+				},
+				Spec: teachv1alpha1.TaskDefinitionSpec{
+					TaskSpec: teachv1alpha1.TaskSpec{
+						Title:       "failed-condition",
+						Description: "failed-condition",
+					},
+					TaskConditions: []teachv1alpha1.TaskCondition{
+						{
+							APIVersion: "v1",
+							Kind:       "WrongKind",
+							APIGroup:   "",
+							Name:       "failed-condition",
+						},
+					},
+				},
+			}
+			Expect(k8sClient.Create(ctx, &taskDefinition)).Should(Succeed())
+			Eventually(func() error {
+				eventList := &v1.EventList{}
+				err := k8sClient.List(ctx, eventList)
+				if err != nil {
+					return err
+				}
+				for _, event := range eventList.Items {
+					if event.InvolvedObject.Name == taskDefinition.Name {
+						if event.Type == v1.EventTypeWarning &&
+							strings.Contains(event.Message, "Conditions apply fail with error") {
+							return nil
+						}
+					}
+				}
+
+				return errors.New("failed event not found")
+			}, timeout, retry).Should(Succeed())
+			Expect(k8sClient.Delete(ctx, &taskDefinition)).Should(Succeed())
 		})
 
 	})
