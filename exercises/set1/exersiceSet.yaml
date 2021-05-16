@@ -15,6 +15,7 @@ spec:
           - apiVersion: v1
             kind: Namespace
             name: "kubeteach"
+        points: 5
     - name: task02
       taskDefinitionSpec:
         taskSpec:
@@ -30,6 +31,7 @@ spec:
               - field: "spec.containers.0.image"
                 operator: "eq"
                 value: "nginx:latest"
+        points: 5
     - name: task03
       taskDefinitionSpec:
         taskSpec:
@@ -49,6 +51,7 @@ spec:
               - field: "spec.replicas"
                 operator: "eq"
                 value: "3"
+        points: 5
     - name: task04
       taskDefinitionSpec:
         taskSpec:
@@ -68,6 +71,7 @@ spec:
               - field: "spec.replicas"
                 operator: "eq"
                 value: "5"
+        points: 5
     - name: task05
       taskDefinitionSpec:
         taskSpec:
@@ -83,6 +87,7 @@ spec:
               - field: "spec.template.spec.containers.0.ports.#(containerPort==80).protocol"
                 operator: "eq"
                 value: "TCP"
+        points: 5
     - name: task06
       taskDefinitionSpec:
         taskSpec:
@@ -102,6 +107,7 @@ spec:
               - field: "spec.type"
                 operator: "eq"
                 value: "NodePort"
+        points: 5
     - name: task07
       taskDefinitionSpec:
         taskSpec:
@@ -118,6 +124,7 @@ spec:
               - field: "data.color"
                 operator: "eq"
                 value: "blue"
+        points: 5
     - name: task08
       taskDefinitionSpec:
         taskSpec:
@@ -137,6 +144,7 @@ spec:
               - field: "spec.containers.0.env.#(name==COLOR).valueFrom.configMapKeyRef.key"
                 operator: "eq"
                 value: "color"
+        points: 5
     - name: task09
       taskDefinitionSpec:
         taskSpec:
@@ -149,6 +157,7 @@ spec:
             kind: ServiceAccount
             name: "kubeteach-sa"
             namespace: kubeteach
+        points: 5
     - name: task10
       taskDefinitionSpec:
         taskSpec:
@@ -168,6 +177,7 @@ spec:
               - field: "spec.template.spec.serviceAccountName"
                 operator: "eq"
                 value: "kubeteach-sa"
+        points: 5
     - name: task11
       taskDefinitionSpec:
         taskSpec:
@@ -196,6 +206,7 @@ spec:
               - field: "rules.0.verbs"
                 operator: "contains"
                 value: "watch"
+        points: 5
     - name: task12
       taskDefinitionSpec:
         taskSpec:
@@ -215,6 +226,7 @@ spec:
               - field: "roleRef.name"
                 operator: "eq"
                 value: "kubeteach-pod-role"
+        points: 5
     - name: task13
       taskDefinitionSpec:
         taskSpec:
@@ -229,3 +241,4 @@ spec:
               - field: "spec.template.spec.containers.0.image"
                 operator: "contains"
                 value: "nginx"
+        points: 5
