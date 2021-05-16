@@ -19,12 +19,13 @@ package controllers
 import (
 	"context"
 	"encoding/json"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/types"
 	"reflect"
+	"time"
 
 	"github.com/go-logr/logr"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/types"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
@@ -34,8 +35,9 @@ import (
 // ExerciseSetReconciler reconciles a ExerciseSet object
 type ExerciseSetReconciler struct {
 	client.Client
-	Log    logr.Logger
-	Scheme *runtime.Scheme
+	Log         logr.Logger
+	Scheme      *runtime.Scheme
+	RequeueTime time.Duration
 }
 
 //+kubebuilder:rbac:groups=kubeteach.geberl.io,resources=exercisesets,verbs=get;list;watch;create;update;patch;delete
@@ -146,7 +148,7 @@ func (r *ExerciseSetReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 		}
 	}
 
-	return ctrl.Result{RequeueAfter: 5}, nil
+	return ctrl.Result{RequeueAfter: r.RequeueTime}, nil
 }
 
 // SetupWithManager sets up the controller with the Manager.

@@ -54,14 +54,16 @@ func main() {
 	var enableLeaderElection bool
 	var probeAddr string
 	var debugMode bool
-	var requeueTime int
+	var requeueTimeTaskDefinition int
+	var requeueTimeExerciseSet int
 	flag.StringVar(&metricsAddr, "metrics-bind-address", ":8080", "The address the metric endpoint binds to.")
 	flag.StringVar(&probeAddr, "health-probe-bind-address", ":8081", "The address the probe endpoint binds to.")
 	flag.BoolVar(&enableLeaderElection, "leader-elect", false,
 		"Enable leader election for controller manager. "+
 			"Enabling this will ensure there is only one active controller manager.")
 	flag.BoolVar(&debugMode, "debug", false, "Enables debug logging mode")
-	flag.IntVar(&requeueTime, "requeue-time", 5, "sets the requeue time in seconds for active and pending tasks")
+	flag.IntVar(&requeueTimeTaskDefinition, "requeue-time-taskdefinition", 5, "sets the requeue time in seconds for active and pending tasks")
+	flag.IntVar(&requeueTimeExerciseSet, "requeue-time-exerciseset", 60, "sets the requeue time in seconds for exercisesets")
 	opts := zap.Options{
 		Development: debugMode,
 	}
@@ -88,15 +90,16 @@ func main() {
 		Log:         ctrl.Log.WithName("controllers").WithName("TaskDefinition"),
 		Scheme:      mgr.GetScheme(),
 		Recorder:    mgr.GetEventRecorderFor("Task"),
-		RequeueTime: time.Duration(requeueTime) * time.Second,
+		RequeueTime: time.Duration(requeueTimeTaskDefinition) * time.Second,
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "TaskDefinition")
 		os.Exit(1)
 	}
 	if err = (&controllers.ExerciseSetReconciler{
-		Client: mgr.GetClient(),
-		Log:    ctrl.Log.WithName("controllers").WithName("ExerciseSet"),
-		Scheme: mgr.GetScheme(),
+		Client:      mgr.GetClient(),
+		Log:         ctrl.Log.WithName("controllers").WithName("ExerciseSet"),
+		Scheme:      mgr.GetScheme(),
+		RequeueTime: time.Duration(requeueTimeExerciseSet) * time.Second,
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "ExerciseSet")
 		os.Exit(1)
