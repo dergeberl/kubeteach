@@ -50,7 +50,8 @@ spec:
                       description: TaskDefinitionSpec represents the Spec of an TaskDefinition
                       properties:
                         points:
-                          description: Points TODO
+                          description: Points Number of points for this TaskDefinition.
+                            Points will be summarized in an ExerciseSet.
                           type: integer
                         requiredTaskName:
                           description: RequiredTaskName defines a TaskDefinition Name
