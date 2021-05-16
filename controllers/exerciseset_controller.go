@@ -40,6 +40,7 @@ type ExerciseSetReconciler struct {
 	RequeueTime time.Duration
 }
 
+//+kubebuilder:rbac:groups=kubeteach.geberl.io,resources=taskdefinitions,verbs=get;list;watch;create;update;patch;delete
 //+kubebuilder:rbac:groups=kubeteach.geberl.io,resources=exercisesets,verbs=get;list;watch;create;update;patch;delete
 //+kubebuilder:rbac:groups=kubeteach.geberl.io,resources=exercisesets/status,verbs=get;update;patch
 //+kubebuilder:rbac:groups=kubeteach.geberl.io,resources=exercisesets/finalizers,verbs=update
@@ -63,6 +64,7 @@ func (r *ExerciseSetReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 			if client.IgnoreNotFound(err) != nil {
 				return ctrl.Result{}, err
 			}
+			// create taskDefinition
 			taskDefinitionObject = kubeteachv1alpha1.TaskDefinition{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      taskDefinition.Name,
@@ -91,6 +93,7 @@ func (r *ExerciseSetReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 			}
 		}
 
+		// update OwnerReferences if needed
 		if !reflect.DeepEqual(taskDefinitionObject.OwnerReferences, []metav1.OwnerReference{{
 			APIVersion: exerciseSet.APIVersion,
 			Kind:       exerciseSet.Kind,
@@ -109,8 +112,10 @@ func (r *ExerciseSetReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 			}
 		}
 
-		// count status infos
+		//count total tasks
 		newExerciseSetStatus.NumberOfTasks++
+
+		// count tasks with state
 		if taskDefinitionObject.Status.State != nil {
 			switch *taskDefinitionObject.Status.State {
 			case stateActive:
@@ -122,13 +127,17 @@ func (r *ExerciseSetReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 			}
 		} else {
 			newExerciseSetStatus.NumberOfUnknownTasks++
-			r.Log.Info("Task is in UnknownState", "taskname", taskDefinitionObject.Name)
 		}
 
+		// count total sum of points
 		newExerciseSetStatus.PointsTotal += taskDefinition.TaskDefinitionSpec.Points
+
+		// count tasks without points
 		if taskDefinition.TaskDefinitionSpec.Points == 0 {
 			newExerciseSetStatus.NumberOfTasksWithoutPoints++
 		}
+
+		// count points from successful tasks
 		if taskDefinitionObject.Status.State != nil &&
 			*taskDefinitionObject.Status.State == stateSuccessful {
 			newExerciseSetStatus.PointsAchieved += taskDefinition.TaskDefinitionSpec.Points
@@ -146,7 +155,6 @@ func (r *ExerciseSetReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 			`"numberOfTasksWithoutPoints": ` + fmt.Sprint(newExerciseSetStatus.NumberOfTasksWithoutPoints) + `, ` +
 			`"pointsTotal": ` + fmt.Sprint(newExerciseSetStatus.PointsTotal) + `, ` +
 			`"pointsAchieved": ` + fmt.Sprint(newExerciseSetStatus.PointsAchieved) + `}}`)
-		r.Log.Info("update status", "newStatus", string(patch))
 		err = r.Client.Status().Patch(ctx, &exerciseSet, client.RawPatch(types.MergePatchType, patch))
 		if err != nil {
 			return ctrl.Result{}, err

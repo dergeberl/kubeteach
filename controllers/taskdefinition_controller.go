@@ -286,7 +286,7 @@ func (r *TaskDefinitionReconciler) notifyExerciseSet(
 			if err != nil {
 				return err
 			}
-			patch := []byte(`{"metadata": { "annotations": {"geberl.io/kubeteach-trigger": "` + fmt.Sprint(time.Now().Unix()) + `"}}}`)
+			patch := []byte(`{"metadata": { "annotations": {"geberl.io/kubeteach-trigger": "` + fmt.Sprint(time.Now().UnixNano()) + `"}}}`)
 			err = r.Client.Patch(ctx, &exerciseSet, client.RawPatch(types.MergePatchType, patch))
 			if err != nil {
 				return err

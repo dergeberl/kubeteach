@@ -21,6 +21,12 @@ import (
 )
 
 //+kubebuilder:object:root=true
+// +kubebuilder:printcolumn:name="PointsAchieved",type=string,JSONPath=`.status.pointsAchieved`
+// +kubebuilder:printcolumn:name="PointsTotal",type=string,JSONPath=`.status.pointsTotal`
+// +kubebuilder:printcolumn:name="Tasks",type=string,JSONPath=`.status.numberOfTasks`
+// +kubebuilder:printcolumn:name="Successful",type=string,JSONPath=`.status.numberOfSuccessfulTasks`
+// +kubebuilder:printcolumn:name="Active",type=string,JSONPath=`.status.numberOfActiveTasks`
+// +kubebuilder:printcolumn:name="Pending",type=string,JSONPath=`.status.numberOfPendingTasks`
 //+kubebuilder:subresource:status
 
 // ExerciseSet is the Schema for the exercisesets API
@@ -61,30 +67,30 @@ type ExerciseSetSpecTaskDefinitions struct {
 
 // ExerciseSetStatus defines the observed state of ExerciseSet
 type ExerciseSetStatus struct {
-	// NumberOfTasks TODO
+	// NumberOfTasks is the number of total tasks of this ExerciseSet
 	// +optional
-	NumberOfTasks int `json:"numberOfTasks,omitempty"`
-	// NumberOfActiveTasks TODO
+	NumberOfTasks int `json:"numberOfTasks"`
+	// NumberOfActiveTasks is the number of active tasks of this ExerciseSet
 	// +optional
-	NumberOfActiveTasks int `json:"numberOfActiveTasks,omitempty"`
-	// NumberOfPendingTasks TODO
+	NumberOfActiveTasks int `json:"numberOfActiveTasks"`
+	// NumberOfPendingTasks is the number of pending tasks of this ExerciseSet
 	// +optional
-	NumberOfPendingTasks int `json:"numberOfPendingTasks,omitempty"`
-	// NumberOfSuccessfulTasks TODO
+	NumberOfPendingTasks int `json:"numberOfPendingTasks"`
+	// NumberOfSuccessfulTasks is the number of successful tasks of this ExerciseSet
 	// +optional
-	NumberOfSuccessfulTasks int `json:"numberOfSuccessfulTasks,omitempty"`
-	// NumberOfSuccessfulTasks TODO
+	NumberOfSuccessfulTasks int `json:"numberOfSuccessfulTasks"`
+	// NumberOfUnknownTasks is the number of tasks with an unknown state of this ExerciseSet
 	// +optional
-	NumberOfUnknownTasks int `json:"numberOfUnknownTasks,omitempty"`
-	// NumberOfTasksWithoutPoints TODO
+	NumberOfUnknownTasks int `json:"numberOfUnknownTasks"`
+	// NumberOfTasksWithoutPoints is the number of tasks that have no points defined of this ExerciseSet
 	// +optional
-	NumberOfTasksWithoutPoints int `json:"numberOfTasksWithoutPoints,omitempty"`
-	// PointsTotal TODO
+	NumberOfTasksWithoutPoints int `json:"numberOfTasksWithoutPoints"`
+	// PointsTotal is the total sum of points for all tasks of this ExerciseSet
 	// +optional
-	PointsTotal int `json:"pointsTotal,omitempty"`
-	// PointsAchieved TODO
+	PointsTotal int `json:"pointsTotal"`
+	// PointsAchieved is the total sum of points for all tasks that are successful of this ExerciseSet
 	// +optional
-	PointsAchieved int `json:"pointsAchieved,omitempty"`
+	PointsAchieved int `json:"pointsAchieved"`
 }
 
 func init() {

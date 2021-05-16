@@ -16,7 +16,26 @@ spec:
     singular: exerciseset
   scope: Namespaced
   versions:
-  - name: v1alpha1
+  - additionalPrinterColumns:
+    - jsonPath: .status.pointsAchieved
+      name: PointsAchieved
+      type: string
+    - jsonPath: .status.pointsTotal
+      name: PointsTotal
+      type: string
+    - jsonPath: .status.numberOfTasks
+      name: Tasks
+      type: string
+    - jsonPath: .status.numberOfSuccessfulTasks
+      name: Successful
+      type: string
+    - jsonPath: .status.numberOfActiveTasks
+      name: Active
+      type: string
+    - jsonPath: .status.numberOfPendingTasks
+      name: Pending
+      type: string
+    name: v1alpha1
     schema:
       openAPIV3Schema:
         description: ExerciseSet is the Schema for the exercisesets API
@@ -179,28 +198,35 @@ spec:
             description: ExerciseSetStatus defines the observed state of ExerciseSet
             properties:
               numberOfActiveTasks:
-                description: NumberOfActiveTasks TODO
+                description: NumberOfActiveTasks is the number of active tasks of
+                  this ExerciseSet
                 type: integer
               numberOfPendingTasks:
-                description: NumberOfPendingTasks TODO
+                description: NumberOfPendingTasks is the number of pending tasks of
+                  this ExerciseSet
                 type: integer
               numberOfSuccessfulTasks:
-                description: NumberOfSuccessfulTasks TODO
+                description: NumberOfSuccessfulTasks is the number of successful tasks
+                  of this ExerciseSet
                 type: integer
               numberOfTasks:
-                description: NumberOfTasks TODO
+                description: NumberOfTasks is the number of total tasks of this ExerciseSet
                 type: integer
               numberOfTasksWithoutPoints:
-                description: NumberOfTasksWithoutPoints TODO
+                description: NumberOfTasksWithoutPoints is the number of tasks that
+                  have no points defined of this ExerciseSet
                 type: integer
               numberOfUnknownTasks:
-                description: NumberOfSuccessfulTasks TODO
+                description: NumberOfUnknownTasks is the number of tasks with an unknown
+                  state of this ExerciseSet
                 type: integer
               pointsAchieved:
-                description: PointsAchieved TODO
+                description: PointsAchieved is the total sum of points for all tasks
+                  that are successful of this ExerciseSet
                 type: integer
               pointsTotal:
-                description: PointsTotal TODO
+                description: PointsTotal is the total sum of points for all tasks
+                  of this ExerciseSet
                 type: integer
             type: object
         type: object
