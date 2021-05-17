@@ -113,7 +113,7 @@ func (r *ExerciseSetReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 			}
 		}
 
-		//count total tasks
+		// count total tasks
 		newExerciseSetStatus.NumberOfTasks++
 
 		// count tasks with state

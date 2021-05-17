@@ -32,7 +32,7 @@ linters:
     - gocritic
     - gofmt
     - goimports
-    - golint
+    - revive
     - gomnd
     - goprintffuncname
     - gosec
