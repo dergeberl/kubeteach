@@ -40,6 +40,10 @@ spec:
           spec:
             description: TaskDefinitionSpec defines the desired state of TaskDefinition.
             properties:
+              points:
+                description: Points Number of points for this TaskDefinition. Points
+                  will be summarized in an ExerciseSet.
+                type: integer
               requiredTaskName:
                 description: RequiredTaskName defines a TaskDefinition Name that have
                   to be done before. Useful for example if in task1 a object should

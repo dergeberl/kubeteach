@@ -362,3 +362,88 @@ var taskDefinitionCases = []testCases{
 		err: Not(BeNil()),
 	},
 }
+
+var exerciseSetCases = []testCases{
+	{
+		obj: &ExerciseSet{
+			ObjectMeta: metav1.ObjectMeta{Name: "exerciseset-valid1", Namespace: "default"},
+			Spec: ExerciseSetSpec{
+				TaskDefinitions: []ExerciseSetSpecTaskDefinitions{
+					{
+						Name: "test1",
+						TaskDefinitionSpec: TaskDefinitionSpec{
+							TaskSpec: TaskSpec{
+								Title:       "task",
+								Description: "task",
+							},
+							TaskConditions: []TaskCondition{
+								{
+									APIVersion:        "v1",
+									Kind:              "Namespace",
+									Name:              "default",
+									ResourceCondition: nil,
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+		err: BeNil(),
+	}, {
+		obj: &ExerciseSet{
+			ObjectMeta: metav1.ObjectMeta{Name: "exerciseset-invalid1", Namespace: "default"},
+			Spec: ExerciseSetSpec{
+				TaskDefinitions: []ExerciseSetSpecTaskDefinitions{
+					{
+						Name: "test1",
+						TaskDefinitionSpec: TaskDefinitionSpec{
+							TaskSpec:         TaskSpec{},
+							TaskConditions:   []TaskCondition{},
+							RequiredTaskName: nil,
+							Points:           0,
+						},
+					},
+				},
+			},
+		},
+		err: Not(BeNil()),
+	}, {
+		obj: &ExerciseSet{
+			ObjectMeta: metav1.ObjectMeta{Name: "exerciseset-invalid2", Namespace: "default"},
+			Spec: ExerciseSetSpec{
+				TaskDefinitions: []ExerciseSetSpecTaskDefinitions{
+					{
+						TaskDefinitionSpec: TaskDefinitionSpec{
+							TaskSpec: TaskSpec{
+								Title:       "task",
+								Description: "task",
+							},
+							TaskConditions: []TaskCondition{
+								{
+									APIVersion: "v1",
+									Kind:       "Namespace",
+									Name:       "default",
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+		err: Not(BeNil()),
+	}, {
+		obj: &ExerciseSet{
+			ObjectMeta: metav1.ObjectMeta{Name: "exerciseset-invalid3", Namespace: "default"},
+			Spec: ExerciseSetSpec{
+				TaskDefinitions: []ExerciseSetSpecTaskDefinitions{
+					{
+						Name:               "test",
+						TaskDefinitionSpec: TaskDefinitionSpec{},
+					},
+				},
+			},
+		},
+		err: Not(BeNil()),
+	},
+}

@@ -1,44 +1,39 @@
 ---
 apiVersion: kubeteach.geberl.io/v1alpha1
-kind: TaskDefinition
+kind: ExerciseSet
 metadata:
-  name: task01
+  name: set
 spec:
-  taskSpec:
-    title: "task01"
-    description: "task01 - should be successful"
-  taskCondition:
-    - apiVersion: v1
-      kind: Namespace
-      name: "task01"
----
-apiVersion: kubeteach.geberl.io/v1alpha1
-kind: TaskDefinition
-metadata:
-  name: task02
-spec:
-  taskSpec:
-    title: "task02"
-    description: "task02 - should be active"
-  requiredTaskName: "task01"
-  taskCondition:
-    - apiVersion: v1
-      kind: Namespace
-      name: "task02"
----
-apiVersion: kubeteach.geberl.io/v1alpha1
-kind: TaskDefinition
-metadata:
-  name: task03
-spec:
-  taskSpec:
-    title: "task03"
-    description: "task03 - should be pending"
-  requiredTaskName: "task02"
-  taskCondition:
-    - apiVersion: v1
-      kind: Namespace
-      name: "task03"
+  taskDefinitions:
+    - name: task01
+      taskDefinitionSpec:
+        taskSpec:
+          title: "task01"
+          description: "task01 - should be successful"
+        taskCondition:
+          - apiVersion: v1
+            kind: Namespace
+            name: "task01"
+    - name: task02
+      taskDefinitionSpec:
+        taskSpec:
+          title: "task02"
+          description: "task02 - should be active"
+        requiredTaskName: "task01"
+        taskCondition:
+          - apiVersion: v1
+            kind: Namespace
+            name: "task02"
+    - name: task03
+      taskDefinitionSpec:
+        taskSpec:
+          title: "task03"
+          description: "task03 - should be pending"
+        requiredTaskName: "task02"
+        taskCondition:
+          - apiVersion: v1
+            kind: Namespace
+            name: "task03"
 ---
 apiVersion: v1
 kind: Namespace

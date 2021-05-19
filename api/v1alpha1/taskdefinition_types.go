@@ -54,6 +54,9 @@ type TaskDefinitionSpec struct {
 	// Useful for example if in task1 a object should be created and in task2 the object should be deleted again.
 	//  +optional
 	RequiredTaskName *string `json:"requiredTaskName,omitempty"`
+	// Points Number of points for this TaskDefinition. Points will be summarized in an ExerciseSet.
+	// +optional
+	Points int `json:"points,omitempty"`
 }
 
 // TaskCondition defines a list of conditions for a object that must be true to complete the task.

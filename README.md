@@ -31,17 +31,15 @@ You need also `kubectl` to interact with your cluster. Checkout the [install kub
 
 ### Installation
 
-To install kubeteach to your cluster, you have to deploy the operator itself by applying the deployment file in the `deployment` folder.
+To install kubeteach to your cluster, you have to deploy the operator itself by applying the latest deployment file.
 ```bash
-git clone dergeberl/kubeteach
-cd kubeteach
-kubectl apply -f deployment/
+kubectl apply -f https://github.com/dergeberl/kubeteach/releases/latest/download/deployment.yaml
 ```
 
-Now you can  deploy a set of exercises to your cluster.
+Now you can deploy a set of exercises to your cluster.
 
 ```bash
-kubectl apply -f exercises/set1/
+kubectl apply -f  https://github.com/dergeberl/kubeteach/releases/latest/download/exerciseset1.yaml
 ```
 
 ### Usage
@@ -113,9 +111,82 @@ If you need help you can take a look into the solution folder of the exercise se
 
 ## How it works / How to write own exercises
 
-In the `exercise` folder is a set of `taskdefinitions` which describe a `task` and conditions to check if the task is successful.
+### ExerciseSet (optional)
 
-### taskCondition
+This is optional you can create directly `TaskDefinition`.
+
+An `ExerciseSet` contains one or multiple `TaskDefinitions` to group them together and get some metadata from this `TaskDefinition`'s.
+
+Each `spec.taskDefinitions` consists of a `name` (name of the `TaskDefinition` object) and a `taskDefinitionSpec` (spec of the `TaskDefinition`, see below).
+
+#### Example
+
+```yaml
+apiVersion: kubeteach.geberl.io/v1alpha1
+kind: ExerciseSet
+metadata:
+  name: set1
+spec:
+  taskDefinitions:
+    - name: task01
+      taskDefinitionSpec:
+        taskSpec:
+          title: "Create namespace"
+          description: "Create a new namespace with the name kubeteach"
+        taskCondition:
+          - apiVersion: v1
+            kind: Namespace
+            name: "kubeteach"
+        points: 5
+    - name: task02
+      taskDefinitionSpec:
+        taskSpec:
+          title: "Create namespace"
+          description: "Create a new namespace with the name kubeteach2"
+        taskCondition:
+          - apiVersion: v1
+            kind: Namespace
+            name: "kubeteach2"
+        points: 5
+```
+
+#### Status
+
+The `ExerciseSet` status contains some metadata information of the tasks.
+
+```yaml
+...
+status:
+  numberOfActiveTasks: 2
+  numberOfPendingTasks: 11
+  numberOfSuccessfulTasks: 0
+  numberOfTasks: 13
+  numberOfTasksWithoutPoints: 0
+  numberOfUnknownTasks: 0
+  pointsAchieved: 0
+  pointsTotal: 65
+...
+```
+
+### TaskDefinition
+
+A `TaskDefinition` describes a `Task` and conditions to check if the task is successful.
+
+#### taskSpec
+
+The `taskSpec` will be copied to the `Task` and is the object which is used for solving tasks. It should contain all information which are needed to solve the `Task`.
+
+The following fields are available:
+- `title` - title of the task
+- `description` - description of the task which is shown by `kubectl get tasks`
+- `longDescription` (optional) - longer description of the task which is shown by `kubectl describe tasks`
+- `helpURL` (optional) - an url to more information about the topic in the task
+
+#### points
+
+`points` is an optional field which is only used if the `TaskDefinition` is created by an `ExerciseSet` to sum all points inside the `ExerciseSet`-status.
+
+#### taskCondition
 
 To check if the task is successful there is a list of `taskCondition`. 
 Each `taskCondition` describes an object (apiVersion, kind and name) and contains a list of `resourceCondition` (see below).
@@ -125,7 +196,7 @@ To check if an object doesn't exist you can use `spec.taskConditions.notExists` 
 
 To depend on another task you can link a task as required with `spac.requiredTaskName`. This task will be in pending until the required task is successful. Be careful there is no check if the tasks can ever become active or are stuck in pending forever.
 
-### resourceCondition
+#### resourceCondition
 
 Each `resourceCondition` contains a `field` which should be checked, an `operator` (see table below) and a `value`.
 
@@ -143,7 +214,7 @@ The `field` is a json path to find the field witch should be checked. The json p
 
 If there are multiple `taskCondition` and `resourceCondition` then **all** must be successful to complete the task.
 
-### Example
+#### Example
 
 A simple example to check if a namespace is created:
 

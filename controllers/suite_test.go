@@ -86,6 +86,14 @@ var _ = BeforeSuite(func(done Done) {
 		Recorder:    k8sManager.GetEventRecorderFor("Task"),
 		RequeueTime: time.Duration(1) * time.Second,
 	}).SetupWithManager(k8sManager)
+
+	Expect(err).ToNot(HaveOccurred())
+	err = (&ExerciseSetReconciler{
+		Client:      k8sManager.GetClient(),
+		Scheme:      k8sManager.GetScheme(),
+		Log:         ctrl.Log.WithName("controllers").WithName("ExerciseSet"),
+		RequeueTime: time.Duration(1) * time.Second,
+	}).SetupWithManager(k8sManager)
 	Expect(err).ToNot(HaveOccurred())
 
 	go func() {

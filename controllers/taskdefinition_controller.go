@@ -69,10 +69,7 @@ func (r *TaskDefinitionReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 	err := r.Client.Get(ctx, req.NamespacedName, &taskDefinition)
 	if err != nil {
 		// ignore taskdefinitons that dose not exists
-		if errors.IsNotFound(err) {
-			return ctrl.Result{}, nil
-		}
-		return ctrl.Result{}, err
+		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
 
 	// skip delete objects
@@ -83,6 +80,10 @@ func (r *TaskDefinitionReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 	// set status if empty to statePending
 	if taskDefinition.Status.State == nil {
 		err = r.setState(ctx, statePending, &taskDefinition)
+		if err != nil {
+			return ctrl.Result{}, err
+		}
+		err = r.notifyExerciseSet(ctx, taskDefinition)
 		if err != nil {
 			return ctrl.Result{}, err
 		}
@@ -122,6 +123,10 @@ func (r *TaskDefinitionReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 		if err != nil {
 			return ctrl.Result{}, err
 		}
+		err = r.notifyExerciseSet(ctx, taskDefinition)
+		if err != nil {
+			return ctrl.Result{}, err
+		}
 		r.Recorder.Event(&task, "Normal", "Successful", "Task is successfully completed")
 		return ctrl.Result{}, nil
 	}
@@ -156,6 +161,10 @@ func (r *TaskDefinitionReconciler) checkPending(
 			if err != nil {
 				return ctrl.Result{}, err
 			}
+			err = r.notifyExerciseSet(ctx, *taskDefinition)
+			if err != nil {
+				return ctrl.Result{}, err
+			}
 			return ctrl.Result{Requeue: true}, nil
 		}
 
@@ -166,6 +175,10 @@ func (r *TaskDefinitionReconciler) checkPending(
 	// set state to active no pre required task is defined
 	r.Recorder.Event(task, "Normal", "Active", "Task has no pre required task, task is now active")
 	err := r.setState(ctx, stateActive, taskDefinition, task)
+	if err != nil {
+		return ctrl.Result{}, err
+	}
+	err = r.notifyExerciseSet(ctx, *taskDefinition)
 	if err != nil {
 		return ctrl.Result{}, err
 	}
@@ -252,6 +265,29 @@ func (r *TaskDefinitionReconciler) setState(
 		err := r.Status().Patch(ctx, object, client.RawPatch(types.MergePatchType, patch))
 		if err != nil {
 			return err
+		}
+	}
+	return nil
+}
+
+// notifyExerciseSet chanes an annotation of the exerciseSet to trigger an reconcile
+func (r *TaskDefinitionReconciler) notifyExerciseSet(
+	ctx context.Context,
+	taskDefinition teachv1alpha1.TaskDefinition,
+) error {
+	for _, owner := range taskDefinition.OwnerReferences {
+		if owner.Kind == "ExerciseSet" &&
+			owner.Name != "" {
+			var exerciseSet teachv1alpha1.ExerciseSet
+			err := r.Client.Get(ctx, client.ObjectKey{Name: owner.Name, Namespace: taskDefinition.Namespace}, &exerciseSet)
+			if err != nil {
+				return err
+			}
+			patch := []byte(`{"metadata": { "annotations": {"geberl.io/kubeteach-trigger": "` + fmt.Sprint(time.Now().UnixNano()) + `"}}}`)
+			err = r.Client.Patch(ctx, &exerciseSet, client.RawPatch(types.MergePatchType, patch))
+			if err != nil {
+				return err
+			}
 		}
 	}
 	return nil

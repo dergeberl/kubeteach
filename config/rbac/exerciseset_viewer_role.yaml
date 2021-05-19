@@ -1,0 +1,20 @@
+# permissions for end users to view exercisesets.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: exerciseset-viewer-role
+rules:
+- apiGroups:
+  - kubeteach.geberl.io
+  resources:
+  - exercisesets
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - kubeteach.geberl.io
+  resources:
+  - exercisesets/status
+  verbs:
+  - get
