@@ -10,5 +10,5 @@ roleRef:
   name: kubeteach-pod-role
 subjects:
 - kind: ServiceAccount
-  name: nginx-sa
+  name: kubeteach-sa
   namespace: kubeteach

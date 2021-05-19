@@ -182,7 +182,7 @@ spec:
       taskDefinitionSpec:
         taskSpec:
           title: "Create role"
-          description: "Create a new role named kubeteach-pod-role in kubeteach namespace with permissions on pods (get, list, view)"
+          description: "Create a new role named kubeteach-pod-role in kubeteach namespace with permissions on pods (get, list, watch)"
           helpURL: "https://kubernetes.io/docs/reference/access-authn-authz/rbac/"
         requiredTaskName: task10
         taskCondition:
@@ -211,7 +211,7 @@ spec:
       taskDefinitionSpec:
         taskSpec:
           title: "Create rolebinding"
-          description: "Connect the role kubeteach-pod-role (task11) and serviceaccount nginx-sa (task9) in a rolebinding named kubeteach-rolebinding"
+          description: "Connect the role kubeteach-pod-role (task11) and serviceaccount kubeteach-sa (task9) in a rolebinding named kubeteach-rolebinding"
           helpURL: "https://kubernetes.io/docs/reference/access-authn-authz/rbac/"
         requiredTaskName: task11
         taskCondition:
@@ -222,7 +222,7 @@ spec:
             resourceCondition:
               - field: "subjects.0.name"
                 operator: "eq"
-                value: "nginx-sa"
+                value: "kubeteach-sa"
               - field: "roleRef.name"
                 operator: "eq"
                 value: "kubeteach-pod-role"
