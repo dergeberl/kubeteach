@@ -1,6 +1,4 @@
 #!/bin/bash
-TIMEOUT=15
-
 TASKS=$(kubectl get task --no-headers | cut -d " " -f1)
 for t in $TASKS
 do
