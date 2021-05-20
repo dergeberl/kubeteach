@@ -19,7 +19,6 @@ jobs:
         with:
           version: v1.40
   test:
-    #needs: [ golangci ]
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
