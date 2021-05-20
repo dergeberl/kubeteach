@@ -14,10 +14,6 @@ spec:
     listKind: ExerciseSetList
     plural: exercisesets
     singular: exerciseset
-
-
-
-
   scope: Namespaced
   versions:
   - additionalPrinterColumns:
