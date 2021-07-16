@@ -62,8 +62,10 @@ func main() {
 		"Enable leader election for controller manager. "+
 			"Enabling this will ensure there is only one active controller manager.")
 	flag.BoolVar(&debugMode, "debug", false, "Enables debug logging mode")
-	flag.IntVar(&requeueTimeTaskDefinition, "requeue-time-taskdefinition", 5, "sets the requeue time in seconds for active and pending tasks")
-	flag.IntVar(&requeueTimeExerciseSet, "requeue-time-exerciseset", 60, "sets the requeue time in seconds for exercisesets")
+	flag.IntVar(&requeueTimeTaskDefinition, "requeue-time-taskdefinition", 5, //nolint: gomnd
+		"sets the requeue time in seconds for active and pending tasks")
+	flag.IntVar(&requeueTimeExerciseSet, "requeue-time-exerciseset", 60, //nolint: gomnd
+		"sets the requeue time in seconds for exercisesets")
 	opts := zap.Options{
 		Development: debugMode,
 	}
