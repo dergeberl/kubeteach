@@ -1,3 +1,6 @@
+<div align="center">
+<img src="./img/logo.svg" alt="kubeteach logo" title="kubeteach" height="400" align=""/>
+
 # kubeteach
 
 [![Go Report Card](https://goreportcard.com/badge/github.com/dergeberl/kubeteach)](https://goreportcard.com/report/github.com/dergeberl/kubeteach)
@@ -6,6 +9,8 @@
 [![Coverage Status](https://coveralls.io/repos/github/dergeberl/kubeteach/badge.svg?branch=main)](https://coveralls.io/github/dergeberl/kubeteach?branch=main)
 [![Test status](https://img.shields.io/github/workflow/status/dergeberl/kubeteach/tests/main?label=test)](https://github.com/dergeberl/kubeteach/actions?query=branch%3Amain++workflow%3Atests++)
 [![Build status](https://img.shields.io/github/workflow/status/dergeberl/kubeteach/build/main?label=build)](https://github.com/dergeberl/kubeteach/actions?query=branch%3Amain++workflow%3Abuild++)
+
+</div>
 
 Kubeteach is an operator build with [kubebuilder](https://github.com/kubernetes-sigs/kubebuilder) to learn kubernetes in kubernetes.
 
