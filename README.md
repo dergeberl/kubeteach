@@ -1,5 +1,5 @@
 <div align="center">
-<img src="./img/logo.svg" alt="kubeteach logo" title="kubeteach" height="400" align=""/>
+<img src="./img/logo.svg" alt="kubeteach logo" title="kubeteach" width="350px" align=""/>
 
 # kubeteach
 
@@ -11,6 +11,7 @@
 [![Build status](https://img.shields.io/github/workflow/status/dergeberl/kubeteach/build/main?label=build)](https://github.com/dergeberl/kubeteach/actions?query=branch%3Amain++workflow%3Abuild++)
 
 </div>
+
 
 Kubeteach is an operator build with [kubebuilder](https://github.com/kubernetes-sigs/kubebuilder) to learn kubernetes in kubernetes.
 
