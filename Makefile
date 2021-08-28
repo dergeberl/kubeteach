@@ -80,12 +80,12 @@ install: manifests ## Install CRDs into the K8s cluster specified in ~/.kube/con
 uninstall: manifests ## Uninstall CRDs from the K8s cluster specified in ~/.kube/config.
 	kubectl delete -f crds/
 
-#deploy: manifests ## Deploy controller to the K8s cluster specified in ~/.kube/config.
-#	cd config/manager && $(KUSTOMIZE) edit set image controller=${IMG}
-#	$(KUSTOMIZE) build config/default | kubectl apply -f -
-#
-#undeploy: ## Undeploy controller from the K8s cluster specified in ~/.kube/config.
-#	$(KUSTOMIZE) build config/default | kubectl delete -f -
+deploy: manifests ## Deploy controller to the K8s cluster specified in ~/.kube/config.
+	helm repo add kubeteach https://dergeberl.github.io/kubeteach-charts
+	helm upgrade --install kubeteach kubeteach/kubeteach-core --namespace kubeteach-system --wait --timeout 120s --create-namespace --set image.repository=ghcr.io/dergeberl/kubeteach --set image.tag=latest
+
+undeploy: ## Undeploy controller from the K8s cluster specified in ~/.kube/config.
+	helm uninstall kubeteach -n kubeteach-system
 
 GOLANGCI_LINT = $(shell pwd)/bin/golangci-lint
 golangci-lint: ## Download golangci-lint locally if necessary.
