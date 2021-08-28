@@ -1,0 +1,174 @@
+
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.4.1
+  creationTimestamp: null
+  name: taskdefinitions.kubeteach.geberl.io
+spec:
+  group: kubeteach.geberl.io
+  names:
+    kind: TaskDefinition
+    listKind: TaskDefinitionList
+    plural: taskdefinitions
+    singular: taskdefinition
+  scope: Namespaced
+  versions:
+  - additionalPrinterColumns:
+    - jsonPath: .status.state
+      name: Status
+      type: string
+    name: v1alpha1
+    schema:
+      openAPIV3Schema:
+        description: TaskDefinition is the Schema for the taskdefinitions API
+        properties:
+          apiVersion:
+            description: 'APIVersion defines the versioned schema of this representation
+              of an object. Servers should convert recognized schemas to the latest
+              internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+            type: string
+          kind:
+            description: 'Kind is a string value representing the REST resource this
+              object represents. Servers may infer this from the endpoint the client
+              submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+            type: string
+          metadata:
+            type: object
+          spec:
+            description: TaskDefinitionSpec defines the desired state of TaskDefinition.
+            properties:
+              points:
+                description: Points Number of points for this TaskDefinition. Points
+                  will be summarized in an ExerciseSet.
+                type: integer
+              requiredTaskName:
+                description: RequiredTaskName defines a TaskDefinition Name that have
+                  to be done before. Useful for example if in task1 a object should
+                  be created and in task2 the object should be deleted again.
+                type: string
+              taskCondition:
+                description: TaskConditions defines a list of conditions for a object
+                  that must be true to complete the task.
+                items:
+                  description: TaskCondition defines a list of conditions for a object
+                    that must be true to complete the task.
+                  properties:
+                    apiGroup:
+                      description: APIGroup is used of the object that should be match
+                        this conditions
+                      type: string
+                    apiVersion:
+                      description: APIVersion is used of the object that should be
+                        match this conditions
+                      minLength: 1
+                      type: string
+                    kind:
+                      description: Kind is used of the object that should be match
+                        this conditions
+                      minLength: 1
+                      type: string
+                    name:
+                      description: Name defines the name of the object that must apply
+                        to this conditions
+                      minLength: 1
+                      type: string
+                    namespace:
+                      description: Namespace is used to find the object if it is namespaced
+                      type: string
+                    notExists:
+                      description: NotExists if set to true, all ResourceCondition
+                        are ignored and the TaskCondition is true if object do not
+                        exists
+                      type: boolean
+                    resourceCondition:
+                      description: ResourceCondition describe the conditions that
+                        must be apply to success this TaskCondition If no ResourceCondition
+                        is set this TaskCondition just check if object exits
+                      items:
+                        description: ResourceCondition describe the conditions that
+                          must be apply to success this TaskCondition
+                        properties:
+                          field:
+                            description: 'Field is the json search string for this
+                              condition. Example: metadata.name For more details have
+                              a look into gjson docs: https://github.com/tidwall/gjson'
+                            minLength: 1
+                            type: string
+                          operator:
+                            description: Operator is for the condition. Valid operators
+                              are eq, neq, lt, gt, nil, notnil contains.
+                            enum:
+                            - eq
+                            - neq
+                            - lt
+                            - gt
+                            - contains
+                            - nil
+                            - notnil
+                            type: string
+                          value:
+                            description: Value contains the value which the Operator
+                              must match. Must be a string but for lt and gt only
+                              numbers are allowed in this string. Value is ignored
+                              by Operator nil and notnil
+                            type: string
+                        required:
+                        - field
+                        - operator
+                        type: object
+                      type: array
+                  required:
+                  - apiVersion
+                  - kind
+                  - name
+                  type: object
+                minItems: 1
+                type: array
+              taskSpec:
+                description: TaskSpec represents spec of the task that is creating
+                  for this TaskDefinition.
+                properties:
+                  description:
+                    description: Description describes the task
+                    minLength: 1
+                    type: string
+                  helpURL:
+                    description: HelpURL is a URL that can help to solve this Task
+                    type: string
+                  longDescription:
+                    description: LongDescription describes the task
+                    type: string
+                  title:
+                    description: Title is the title of the task
+                    minLength: 1
+                    type: string
+                required:
+                - description
+                - title
+                type: object
+            required:
+            - taskCondition
+            - taskSpec
+            type: object
+          status:
+            description: TaskDefinitionStatus defines the observed state of TaskDefinition
+            properties:
+              state:
+                description: State represent the status of this task Can be pending,
+                  active, successful, error
+                type: string
+            type: object
+        type: object
+    served: true
+    storage: true
+    subresources:
+      status: {}
+status:
+  acceptedNames:
+    kind: ""
+    plural: ""
+  conditions: []
+  storedVersions: []
