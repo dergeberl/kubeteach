@@ -30,9 +30,8 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - name: golangci-lint
-        uses: golangci/golangci-lint-action@v2
-        with:
-          version: v1.41
+        run: |
+          make lint
   test:
     name: tests
     runs-on: ubuntu-latest
@@ -82,14 +81,18 @@ jobs:
         with:
           version: v0.11.1
           cluster_name: kind
-      - name: Deploy kubeteach to kind cluster
+      - name: Install Helm
+        uses: azure/setup-helm@v1
+        with:
+          version: v3.4.0
+      - name: Deploy helm-chart
         run: |
           kind load docker-image local-kind-test:test
-          cd config/manager && kustomize edit set image controller=local-kind-test:test
-          cd ../..
-          kustomize build config/default | kubectl apply -f -
+          helm repo add kubeteach https://dergeberl.github.io/kubeteach-charts
+          helm install kubeteach kubeteach/kubeteach-core --namespace kubeteach-system --wait --timeout 120s --create-namespace --set image.pullPolicy=IfNotPresent --set image.repository=local-kind-test --set image.tag=test --set serviceAccount.name=kubeteach
+      - name: Deploy kubeteach-example to kind cluster
+        run: |
           kubectl apply -f .github/kind-test-taskdefinitions.yaml
-          kubectl wait --for=condition=available --timeout=600s -n kubeteach-system deployment/kubeteach-controller-manager
           sleep 15
           kubectl get po -owide -n kubeteach-system
           kubectl get deployments -n kubeteach-system  -o wide
@@ -117,14 +120,18 @@ jobs:
         with:
           version: v0.11.1
           cluster_name: kind
-      - name: Deploy kubeteach and exerciseset1 to kind cluster
+      - name: Install Helm
+        uses: azure/setup-helm@v1
+        with:
+          version: v3.4.0
+      - name: Deploy helm-chart
         run: |
           kind load docker-image local-kind-test:test
-          cd config/manager && kustomize edit set image controller=local-kind-test:test
-          cd ../..
-          kustomize build config/default | kubectl apply -f -
-          kubectl apply -f exercises/set1/
-          kubectl wait --for=condition=available --timeout=600s -n kubeteach-system deployment/kubeteach-controller-manager
+          helm repo add kubeteach https://dergeberl.github.io/kubeteach-charts
+          helm install kubeteach kubeteach/kubeteach-exerciseset1 --namespace kubeteach-system --create-namespace --set kubeteach.image.pullPolicy=IfNotPresent --set kubeteach.image.repository=local-kind-test --set kubeteach.image.tag=test --set kubeteach.serviceAccount.name=kubeteach
+      - name: wait for kubeteach to get ready
+        run: |
+          kubectl wait --for=condition=available --timeout=600s -n kubeteach-system deployment/kubeteach
           sleep 15
       - name: Apply solutions and check task
         run: |

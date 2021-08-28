@@ -32,25 +32,42 @@ Kubeteach checks whether a task has been completed successfully based on defined
 
 To install kubeteach you need a kubernetes cluster. I recommend [kind](https://kind.sigs.k8s.io/) as a local environment, checkout the [kind quick start](https://kind.sigs.k8s.io/docs/user/quick-start/).
 
-You need also `kubectl` to interact with your cluster. Checkout the [install kubectl guide](https://kubernetes.io/de/docs/tasks/tools/install-kubectl/).
+You need also `kubectl` to interact with your cluster and `helm` to install kubeteach to your cluster.
+Checkout the [install kubectl guide](https://kubernetes.io/de/docs/tasks/tools/install-kubectl/).
+Checkout the [install helm guide](https://helm.sh/docs/intro/install/).
 
 
 ### Installation
 
-To install kubeteach to your cluster, you have to deploy the operator itself by applying the latest deployment file.
-```bash
-kubectl apply -f https://github.com/dergeberl/kubeteach/releases/latest/download/deployment.yaml
-```
-
-Now you can deploy a set of exercises to your cluster.
+Add kubeteach helm repo.
 
 ```bash
-kubectl apply -f  https://github.com/dergeberl/kubeteach/releases/latest/download/exerciseset1.yaml
+helm repo add kubeteach https://dergeberl.github.io/kubeteach-charts
 ```
+
+To deploy a set of exercises to your cluster run.
+
+```bash
+helm install exerciseset1 kubeteach/kubeteach-exerciseset1 --namespace exerciseset1 --create-namespace
+```
+
+:warning: Don't use the helm flag `--wait`, because some deployments won't get ready and the helm install command will fail.
+
+
+### Update kubeteach
+
+To update kubeteach you can run the following commands.
+```bash
+helm repo update
+helm upgrade exerciseset1 kubeteach/kubeteach-exerciseset1 --namespace exerciseset1
+```
+
+:warning: Don't use the helm flag `--wait`, because some deployments won't get ready and the helm install command will fail.
+
 
 ### Usage
 
-You can get the tasks that should be performed with `kubectl get tasks`
+You can get the tasks that should be performed with `kubectl get tasks -n exerciseset1`
 
 ```bash
 kubectl get tasks
@@ -60,7 +77,7 @@ task02   Create pod                      Create a pod in namespace kubeteach, na
 ...
 ```
 
-To get more information of one task you can use `kubectl describe task <taskname>`
+To get more information of one task you can use `kubectl describe task -n exerciseset1 <taskname>`
 
 In some task you can find a `helpURL` and/or a `longDescription` with more information about this task.
 
@@ -111,7 +128,7 @@ task01   Create namespace   Create a Namespace with the name kubeteach   success
 
 The task state `pending` shows that another task must be successfully done before.
 
-If you need help you can take a look into the solution folder of the exercise set you user (for example `exercises/set1/solutions`)
+If you need help you can take a look into the solution folder of the exercise set you use (for example [dergeberl/kubeteach-charts/solutions/exerciseset1](https://github.com/dergeberl/kubeteach-charts/tree/main/solutions/exerciseset1))
 
 **An update to a new status can take up to 5 seconds**
 
