@@ -32,21 +32,38 @@ Kubeteach checks whether a task has been completed successfully based on defined
 
 To install kubeteach you need a kubernetes cluster. I recommend [kind](https://kind.sigs.k8s.io/) as a local environment, checkout the [kind quick start](https://kind.sigs.k8s.io/docs/user/quick-start/).
 
-You need also `kubectl` to interact with your cluster. Checkout the [install kubectl guide](https://kubernetes.io/de/docs/tasks/tools/install-kubectl/).
+You need also `kubectl` to interact with your cluster and `helm` to install kubeteach to your cluster.
+Checkout the [install kubectl guide](https://kubernetes.io/de/docs/tasks/tools/install-kubectl/).
+Checkout the [install helm guide](https://helm.sh/docs/intro/install/).
 
 
 ### Installation
 
-To install kubeteach to your cluster, you have to deploy the operator itself by applying the latest deployment file.
-```bash
-kubectl apply -f https://github.com/dergeberl/kubeteach/releases/latest/download/deployment.yaml
-```
-
-Now you can deploy a set of exercises to your cluster.
+Add kubeteach helm repo.
 
 ```bash
-kubectl apply -f  https://github.com/dergeberl/kubeteach/releases/latest/download/exerciseset1.yaml
+helm repo add kubeteach https://dergeberl.github.io/kubeteach-charts
 ```
+
+To deploy a set of exercises to your cluster run.
+
+```bash
+helm install exerciseset1 kubeteach/kubeteach-exerciseset1 --namespace exerciseset1 --create-namespace
+```
+
+:warning: Don't use the helm flag `--wait`, because some deployments won't get ready and the helm install command will fail.
+
+
+### Update kubeteach
+
+To update kubeteach you can run the following commands.
+```bash
+helm repo update
+helm upgrade exerciseset1 kubeteach/kubeteach-exerciseset1 --namespace exerciseset1
+```
+
+:warning: Don't use the helm flag `--wait`, because some deployments won't get ready and the helm install command will fail.
+
 
 ### Usage
 
