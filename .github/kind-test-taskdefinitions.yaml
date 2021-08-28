@@ -64,5 +64,5 @@ roleRef:
   name: test
 subjects:
   - kind: ServiceAccount
-    name: kubeteach-controller-manager
+    name: kubeteach
     namespace: kubeteach-system
