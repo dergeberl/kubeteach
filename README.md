@@ -67,7 +67,7 @@ helm upgrade exerciseset1 kubeteach/kubeteach-exerciseset1 --namespace exercises
 
 ### Usage
 
-You can get the tasks that should be performed with `kubectl get tasks`
+You can get the tasks that should be performed with `kubectl get tasks -n exerciseset1`
 
 ```bash
 kubectl get tasks
@@ -77,7 +77,7 @@ task02   Create pod                      Create a pod in namespace kubeteach, na
 ...
 ```
 
-To get more information of one task you can use `kubectl describe task <taskname>`
+To get more information of one task you can use `kubectl describe task -n exerciseset1 <taskname>`
 
 In some task you can find a `helpURL` and/or a `longDescription` with more information about this task.
 
@@ -128,7 +128,7 @@ task01   Create namespace   Create a Namespace with the name kubeteach   success
 
 The task state `pending` shows that another task must be successfully done before.
 
-If you need help you can take a look into the solution folder of the exercise set you user (for example `exercises/set1/solutions`)
+If you need help you can take a look into the solution folder of the exercise set you use (for example [dergeberl/kubeteach-charts/solutions/exerciseset1](https://github.com/dergeberl/kubeteach-charts/tree/main/solutions/exerciseset1))
 
 **An update to a new status can take up to 5 seconds**
 
