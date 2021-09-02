@@ -32,23 +32,29 @@ Kubeteach checks whether a task has been completed successfully based on defined
 
 To install kubeteach you need a kubernetes cluster. I recommend [kind](https://kind.sigs.k8s.io/) as a local environment, checkout the [kind quick start](https://kind.sigs.k8s.io/docs/user/quick-start/).
 
-You need also `kubectl` to interact with your cluster and `helm` to install kubeteach to your cluster.
-Checkout the [install kubectl guide](https://kubernetes.io/de/docs/tasks/tools/install-kubectl/).
-Checkout the [install helm guide](https://helm.sh/docs/intro/install/).
+You need also `kubectl` to interact with your cluster and `helm` to install kubeteach to your cluster. 
+- Checkout the [install kubectl guide](https://kubernetes.io/de/docs/tasks/tools/install-kubectl/).
+- Checkout the [install helm guide](https://helm.sh/docs/intro/install/).
 
 
 ### Installation
 
-Add kubeteach helm repo.
+#### Add kubeteach helm repo
+
+To be able to deploy kubeteach you need to add the kubeteach helm repo to your local helm installation. 
 
 ```bash
 helm repo add kubeteach https://dergeberl.github.io/kubeteach-charts
 ```
 
-To deploy a set of exercises to your cluster run.
 
+#### Install kubeteach with ExerciseSet
+
+To deploy kubeteach with an ExerciseSet you can select one of this [list](#list-of-exercisesets).
+
+With the following command you can install kubeteach with an ExerciseSet to your cluster. (Change `<helm-chart` to your selected helm chart. For example `kubeteach/kubeteach-exerciseset1`) 
 ```bash
-helm install exerciseset1 kubeteach/kubeteach-exerciseset1 --namespace exerciseset1 --create-namespace
+helm install exerciseset1 <helm-chart> --namespace exerciseset --create-namespace
 ```
 
 :warning: Don't use the helm flag `--wait`, because some deployments won't get ready and the helm install command will fail.
@@ -59,7 +65,7 @@ helm install exerciseset1 kubeteach/kubeteach-exerciseset1 --namespace exercises
 To update kubeteach you can run the following commands.
 ```bash
 helm repo update
-helm upgrade exerciseset1 kubeteach/kubeteach-exerciseset1 --namespace exerciseset1
+helm upgrade exerciseset1 <helm-chart> --namespace exerciseset
 ```
 
 :warning: Don't use the helm flag `--wait`, because some deployments won't get ready and the helm install command will fail.
@@ -67,7 +73,7 @@ helm upgrade exerciseset1 kubeteach/kubeteach-exerciseset1 --namespace exercises
 
 ### Usage
 
-You can get the tasks that should be performed with `kubectl get tasks -n exerciseset1`
+You can get the tasks that should be performed with `kubectl get tasks -n exerciseset`
 
 ```bash
 kubectl get tasks
@@ -77,7 +83,7 @@ task02   Create pod                      Create a pod in namespace kubeteach, na
 ...
 ```
 
-To get more information of one task you can use `kubectl describe task -n exerciseset1 <taskname>`
+To get more information of one task you can use `kubectl describe task -n exerciseset <taskname>`
 
 In some task you can find a `helpURL` and/or a `longDescription` with more information about this task.
 
@@ -131,6 +137,12 @@ The task state `pending` shows that another task must be successfully done befor
 If you need help you can take a look into the solution folder of the exercise set you use (for example [dergeberl/kubeteach-charts/solutions/exerciseset1](https://github.com/dergeberl/kubeteach-charts/tree/main/solutions/exerciseset1))
 
 **An update to a new status can take up to 5 seconds**
+
+## List of ExerciseSets
+
+| name | description | link | helm |
+| --- | --- | --- | --- |
+| kubeteach-exerciseset1 | Example ExerciseSet to try out kubeteach with basic tasks for first steps in kubernetes| [dergeberl/kubeteach-charts/charts/exerciseset1](https://github.com/dergeberl/kubeteach-charts/tree/main/charts/exerciseset1) | `kubeteach/kubeteach-exerciseset1` |
 
 ## How it works / How to write own exercises
 
