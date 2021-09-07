@@ -134,5 +134,14 @@ var _ = Describe("metrics tests", func() {
 			Expect(k8sClient.Delete(ctx, &testTasks3)).Should(Succeed())
 			Expect(k8sClient.Delete(ctx, &testTasks4)).Should(Succeed())
 		})
+
+		It("check error", func() {
+			testutil.CollectAndCount(
+				New(nil, ctrl.Log.WithName("metrics")),
+			)
+			testutil.CollectAndCount(
+				New(nil, nil),
+			)
+		})
 	})
 })
