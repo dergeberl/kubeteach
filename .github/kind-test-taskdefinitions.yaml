@@ -7,6 +7,7 @@ spec:
   taskDefinitions:
     - name: task01
       taskDefinitionSpec:
+        points: 5
         taskSpec:
           title: "task01"
           description: "task01 - should be successful"
@@ -16,6 +17,7 @@ spec:
             name: "task01"
     - name: task02
       taskDefinitionSpec:
+        points: 2
         taskSpec:
           title: "task02"
           description: "task02 - should be active"
