@@ -28,7 +28,7 @@ var testsTaskDefinition = []testDataTaskDefinition{
 	{
 		solution:      &v1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: "test1"}},
 		initialDeploy: nil,
-		state:         stateActive,
+		state:         StateActive,
 		taskDefinition: teachv1alpha1.TaskDefinition{
 			ObjectMeta: metav1.ObjectMeta{Name: "task1", Namespace: "default"},
 			Spec: teachv1alpha1.TaskDefinitionSpec{
@@ -53,7 +53,7 @@ var testsTaskDefinition = []testDataTaskDefinition{
 			},
 		},
 	}, {
-		state:         stateSuccessful,
+		state:         StateSuccessful,
 		solution:      nil,
 		initialDeploy: &v1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: "test2"}},
 		taskDefinition: teachv1alpha1.TaskDefinition{
@@ -80,7 +80,7 @@ var testsTaskDefinition = []testDataTaskDefinition{
 			},
 		},
 	}, {
-		state:         statePending,
+		state:         StatePending,
 		solution:      &v1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: "test3"}},
 		initialDeploy: nil,
 		taskDefinition: teachv1alpha1.TaskDefinition{
@@ -107,7 +107,7 @@ var testsTaskDefinition = []testDataTaskDefinition{
 			},
 		},
 	}, {
-		state: statePending,
+		state: StatePending,
 		solution: &teachv1alpha1.TaskDefinition{
 			ObjectMeta: metav1.ObjectMeta{Name: "task4-require", Namespace: "default"},
 			Spec: teachv1alpha1.TaskDefinitionSpec{

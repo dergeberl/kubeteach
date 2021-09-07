@@ -36,10 +36,11 @@ import (
 	"github.com/dergeberl/kubeteach/controllers/condition"
 )
 
+// const for state field
 const (
-	stateActive     = "active"
-	stateSuccessful = "successful"
-	statePending    = "pending"
+	StateActive     = "active"
+	StateSuccessful = "successful"
+	StatePending    = "pending"
 )
 
 // TaskDefinitionReconciler reconciles a TaskDefinition object
@@ -77,9 +78,9 @@ func (r *TaskDefinitionReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 		return ctrl.Result{}, nil
 	}
 
-	// set status if empty to statePending
+	// set status if empty to StatePending
 	if taskDefinition.Status.State == nil {
-		err = r.setState(ctx, statePending, &taskDefinition)
+		err = r.setState(ctx, StatePending, &taskDefinition)
 		if err != nil {
 			return ctrl.Result{}, err
 		}
@@ -90,8 +91,8 @@ func (r *TaskDefinitionReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 		return ctrl.Result{Requeue: true}, nil
 	}
 
-	// skip if status is already stateSuccessful
-	if *taskDefinition.Status.State == stateSuccessful {
+	// skip if status is already StateSuccessful
+	if *taskDefinition.Status.State == StateSuccessful {
 		return ctrl.Result{}, nil
 	}
 
@@ -102,7 +103,7 @@ func (r *TaskDefinitionReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 	}
 
 	// check pending state
-	if *taskDefinition.Status.State == statePending {
+	if *taskDefinition.Status.State == StatePending {
 		return r.checkPending(ctx, req, &taskDefinition, &task)
 	}
 
@@ -119,7 +120,7 @@ func (r *TaskDefinitionReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 
 	// check status
 	if status {
-		err = r.setState(ctx, stateSuccessful, &taskDefinition, &task)
+		err = r.setState(ctx, StateSuccessful, &taskDefinition, &task)
 		if err != nil {
 			return ctrl.Result{}, err
 		}
@@ -155,9 +156,9 @@ func (r *TaskDefinitionReconciler) checkPending(
 		}
 
 		// set state to active if pre required task is successful
-		if reqTask.Status.State != nil && *reqTask.Status.State == stateSuccessful {
+		if reqTask.Status.State != nil && *reqTask.Status.State == StateSuccessful {
 			r.Recorder.Event(task, "Normal", "Active", "Pre required task is successful, task is now active")
-			err = r.setState(ctx, stateActive, taskDefinition, task)
+			err = r.setState(ctx, StateActive, taskDefinition, task)
 			if err != nil {
 				return ctrl.Result{}, err
 			}
@@ -174,7 +175,7 @@ func (r *TaskDefinitionReconciler) checkPending(
 
 	// set state to active no pre required task is defined
 	r.Recorder.Event(task, "Normal", "Active", "Task has no pre required task, task is now active")
-	err := r.setState(ctx, stateActive, taskDefinition, task)
+	err := r.setState(ctx, StateActive, taskDefinition, task)
 	if err != nil {
 		return ctrl.Result{}, err
 	}
