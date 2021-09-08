@@ -76,8 +76,6 @@ jobs:
           file: ./Dockerfile
           push: false
           tags: local-kind-test:test
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
       - name: Create k8s Kind Cluster
         uses: helm/kind-action@v1.2.0
         with:
@@ -117,8 +115,6 @@ jobs:
           file: ./Dockerfile
           push: false
           tags: local-kind-test:test
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
       - name: Create k8s Kind Cluster
         uses: helm/kind-action@v1.2.0
         with:
