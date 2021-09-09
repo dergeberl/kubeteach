@@ -18,7 +18,7 @@ package metrics
 
 import (
 	"context"
-	"time"
+	"fmt"
 
 	"github.com/dergeberl/kubeteach/controllers"
 	"k8s.io/utils/pointer"
@@ -30,7 +30,6 @@ import (
 )
 
 var _ = Describe("metrics tests", func() {
-	timeout, retry := time.Second*10, time.Millisecond*300
 	Context("Run checks", func() {
 		ctx := context.Background()
 
@@ -57,23 +56,6 @@ var _ = Describe("metrics tests", func() {
 					New(k8sClient, ctrl.Log.WithName("metrics")),
 				),
 			).Should(BeNil())
-		})
-
-		It("check metrics", func() {
-			Eventually(func() error {
-				for metric, exp := range expectExerciseSet {
-					err := testutil.CollectAndCompare(
-						New(k8sClient, ctrl.Log.WithName("metrics")),
-						exp,
-						metric,
-					)
-					if err != nil {
-						return err
-					}
-				}
-				return nil
-			}, timeout, retry).Should(Succeed())
-
 		})
 
 		It("clean up ExerciseSet", func() {
@@ -112,22 +94,6 @@ var _ = Describe("metrics tests", func() {
 			).Should(BeNil())
 		})
 
-		It("check metrics", func() {
-			Eventually(func() error {
-				for metric, exp := range expectTask {
-					err := testutil.CollectAndCompare(
-						New(k8sClient, ctrl.Log.WithName("metrics")),
-						exp,
-						metric,
-					)
-					if err != nil {
-						return err
-					}
-				}
-				return nil
-			}, timeout, retry).Should(Succeed())
-		})
-
 		It("clean up task", func() {
 			Expect(k8sClient.Delete(ctx, &testTasks1)).Should(Succeed())
 			Expect(k8sClient.Delete(ctx, &testTasks2)).Should(Succeed())
@@ -139,9 +105,9 @@ var _ = Describe("metrics tests", func() {
 			testutil.CollectAndCount(
 				New(nil, ctrl.Log.WithName("metrics")),
 			)
-			testutil.CollectAndCount(
+			fmt.Println(testutil.CollectAndLint(
 				New(nil, nil),
-			)
+			))
 		})
 	})
 })

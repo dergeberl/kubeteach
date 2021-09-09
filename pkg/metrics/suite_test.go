@@ -20,8 +20,6 @@ import (
 	"path/filepath"
 	"testing"
 
-	"sigs.k8s.io/controller-runtime/pkg/metrics"
-
 	ctrl "sigs.k8s.io/controller-runtime"
 
 	. "github.com/onsi/ginkgo"
@@ -82,12 +80,12 @@ var _ = BeforeSuite(func(done Done) {
 
 	Expect(err).ToNot(HaveOccurred())
 	// register metrics endpoint
-	metrics.Registry.MustRegister(
-		New(
-			k8sManager.GetClient(),
-			ctrl.Log.WithName("metrics"),
-		),
-	)
+	// metrics.Registry.MustRegister(
+	// 	New(
+	// 		k8sManager.GetClient(),
+	// 		ctrl.Log.WithName("metrics"),
+	// 	),
+	// )
 
 	go func() {
 		err = k8sManager.Start(ctrl.SetupSignalHandler())
