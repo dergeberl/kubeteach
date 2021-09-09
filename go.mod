@@ -3,11 +3,11 @@ module github.com/dergeberl/kubeteach
 go 1.16
 
 require (
-	github.com/go-logr/logr v0.3.0
-	github.com/onsi/ginkgo v1.14.1
-	github.com/onsi/gomega v1.10.2
+	github.com/go-logr/logr v0.4.0
+	github.com/onsi/ginkgo v1.16.4
+	github.com/onsi/gomega v1.16.0
 	github.com/prometheus/client_golang v1.7.1
-	github.com/tidwall/gjson v1.8.1
+	github.com/tidwall/gjson v1.9.0
 	go.uber.org/automaxprocs v1.4.0
 	k8s.io/api v0.20.10
 	k8s.io/apimachinery v0.20.10
