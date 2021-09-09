@@ -123,13 +123,13 @@ var _ = Describe("TaskConditions tests", func() {
 					if err != nil {
 						return err
 					}
-					if curTask.Status.State != nil && *curTask.Status.State == stateSuccessful {
+					if curTask.Status.State != nil && *curTask.Status.State == StateSuccessful {
 						return nil
 					}
 					if curTask.Status.State != nil {
-						return fmt.Errorf("got state %v but want %v in task %v", *curTask.Status.State, stateSuccessful, curTask)
+						return fmt.Errorf("got state %v but want %v in task %v", *curTask.Status.State, StateSuccessful, curTask)
 					}
-					return fmt.Errorf("got no state but want %v in task %v", stateSuccessful, curTask)
+					return fmt.Errorf("got no state but want %v in task %v", StateSuccessful, curTask)
 				}, timeout, retry).Should(Succeed())
 			}
 

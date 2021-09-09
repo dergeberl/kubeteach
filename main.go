@@ -27,15 +27,17 @@ import (
 	// to ensure that exec-entrypoint and run can make use of them.
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
 
+	kubeteachv1alpha1 "github.com/dergeberl/kubeteach/api/v1alpha1"
+	"github.com/dergeberl/kubeteach/controllers"
+	kubeteachmetrics "github.com/dergeberl/kubeteach/pkg/metrics"
+
 	"k8s.io/apimachinery/pkg/runtime"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
-
-	kubeteachv1alpha1 "github.com/dergeberl/kubeteach/api/v1alpha1"
-	"github.com/dergeberl/kubeteach/controllers"
+	"sigs.k8s.io/controller-runtime/pkg/metrics"
 	//+kubebuilder:scaffold:imports
 )
 
@@ -118,6 +120,14 @@ func main() {
 		setupLog.Error(err, "unable to set up ready check")
 		os.Exit(1)
 	}
+
+	// register metrics endpoint
+	metrics.Registry.MustRegister(
+		kubeteachmetrics.New(
+			mgr.GetClient(),
+			ctrl.Log.WithName("metrics"),
+		),
+	)
 
 	setupLog.Info("starting manager")
 	if err := mgr.Start(ctrl.SetupSignalHandler()); err != nil {

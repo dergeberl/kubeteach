@@ -119,11 +119,11 @@ func (r *ExerciseSetReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 		// count tasks with state
 		if taskDefinitionObject.Status.State != nil {
 			switch *taskDefinitionObject.Status.State {
-			case stateActive:
+			case StateActive:
 				newExerciseSetStatus.NumberOfActiveTasks++
-			case statePending:
+			case StatePending:
 				newExerciseSetStatus.NumberOfPendingTasks++
-			case stateSuccessful:
+			case StateSuccessful:
 				newExerciseSetStatus.NumberOfSuccessfulTasks++
 			}
 		} else {
@@ -140,7 +140,7 @@ func (r *ExerciseSetReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 
 		// count points from successful tasks
 		if taskDefinitionObject.Status.State != nil &&
-			*taskDefinitionObject.Status.State == stateSuccessful {
+			*taskDefinitionObject.Status.State == StateSuccessful {
 			newExerciseSetStatus.PointsAchieved += taskDefinition.TaskDefinitionSpec.Points
 		}
 	}
