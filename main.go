@@ -64,6 +64,9 @@ func main() {
 	var enableDashboard bool
 	var dashboardListenAddr string
 	var dashboardContent string
+	var dashboardWebterminalHost string
+	var dashboardWebterminalPort string
+	var dashboardWebterminalCredentials string
 	flag.StringVar(&metricsAddr, "metrics-bind-address", ":8080", "The address the metric endpoint binds to.")
 	flag.StringVar(&probeAddr, "health-probe-bind-address", ":8081", "The address the probe endpoint binds to.")
 	flag.BoolVar(&enableLeaderElection, "leader-elect", false,
@@ -78,6 +81,9 @@ func main() {
 		"Enable dashboard for kubeteach.")
 	flag.StringVar(&dashboardListenAddr, "dashboard-bind-address", ":8090", "Address that dashboard endpoint binds to.")
 	flag.StringVar(&dashboardContent, "dashboard-content", "/dashboard", "The folder that contains the static files for the dashboard.")
+	flag.StringVar(&dashboardWebterminalHost, "dashboard-webterminal-host", "kubeteach-core-dashboard-webterminal", "TODO")
+	flag.StringVar(&dashboardWebterminalPort, "dashboard-webterminal-port", "8080", "TODO")
+	flag.StringVar(&dashboardWebterminalCredentials, "dashboard-webterminal-credentials", "", "TODO")
 
 	opts := zap.Options{
 		Development: debugMode,
@@ -141,7 +147,12 @@ func main() {
 	// start api if enabled
 	if enableDashboard {
 		setupLog.Info("starting api")
-		apiConfig := kubeteachdashboard.New(mgr.GetClient(), dashboardListenAddr, dashboardContent)
+		apiConfig := kubeteachdashboard.New(mgr.GetClient(),
+			dashboardListenAddr,
+			dashboardContent,
+			dashboardWebterminalHost,
+			dashboardWebterminalPort,
+			dashboardWebterminalCredentials)
 		go func() {
 			if err := apiConfig.Run(); err != nil {
 				setupLog.Error(err, "problem running api")

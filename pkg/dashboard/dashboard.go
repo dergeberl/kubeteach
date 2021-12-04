@@ -22,7 +22,11 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"net/http/httputil"
+	"net/url"
+	"os"
 	"sort"
+	"strings"
 
 	kubeteachv1alpha1 "github.com/dergeberl/kubeteach/api/v1alpha1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -32,9 +36,12 @@ import (
 
 // Config values for api
 type Config struct {
-	client           client.Client
-	listenAddr       string
-	dashboardContent string
+	client                 client.Client
+	listenAddr             string
+	dashboardContent       string
+	webterminalHost        string
+	webterminalPort        string
+	webterminalCredentials string
 }
 
 type task struct {
@@ -56,11 +63,24 @@ type taskStatus struct {
 }
 
 // New creates a new config for the api
-func New(client client.Client, listenAddr string, dashboardContent string) Config {
+func New(
+	client client.Client,
+	listenAddr string,
+	dashboardContent string,
+	webterminalHost string,
+	webterminalPort string,
+	webterminalCredentials string,
+) Config {
+	if os.Getenv("WEBTERMINAL_CREDENTIALS") != "" {
+		webterminalCredentials = os.Getenv("WEBTERMINAL_CREDENTIALS")
+	}
 	return Config{
-		client:           client,
-		listenAddr:       listenAddr,
-		dashboardContent: dashboardContent,
+		client:                 client,
+		listenAddr:             listenAddr,
+		dashboardContent:       dashboardContent,
+		webterminalHost:        webterminalHost,
+		webterminalPort:        webterminalPort,
+		webterminalCredentials: webterminalCredentials,
 	}
 }
 
@@ -81,6 +101,22 @@ func (c *Config) configureChi() *chi.Mux {
 			})
 			r.Route("/taskstatus", func(r chi.Router) {
 				r.Get("/{uid}", c.taskStatus)
+			})
+		})
+		r.Route("/shell", func(r chi.Router) {
+			r.HandleFunc("/*", func(writer http.ResponseWriter, request *http.Request) {
+				shellHost, _ := url.Parse("http://" + c.webterminalHost + ":" + c.webterminalPort + "/")
+				if c.webterminalCredentials != "" {
+					creds := strings.Split(c.webterminalCredentials, ":")
+					if len(creds) != 2 { //nolint:gomnd
+						// todo handle
+						panic("")
+					}
+					fmt.Println(creds)
+					request.SetBasicAuth(creds[0], creds[1])
+				}
+				fmt.Println(shellHost)
+				httputil.NewSingleHostReverseProxy(shellHost).ServeHTTP(writer, request)
 			})
 		})
 	})

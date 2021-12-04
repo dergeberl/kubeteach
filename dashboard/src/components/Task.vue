@@ -24,7 +24,7 @@
     Status: {{ selectedTaskStatus }}
     <br>
   </div>
-  <iframe src="http://localhost:8887" id="shell"></iframe>
+  <iframe src="/shell" id="shell"></iframe>
 </template>
 
 <script>
