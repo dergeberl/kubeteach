@@ -18,6 +18,13 @@ COPY controllers/ controllers/
 # Build
 RUN CGO_ENABLED=0 GOOS=linux GO111MODULE=on go build -a -o kubeteach main.go
 
+# Build vue app
+FROM node:lts-alpine as builder-vue
+WORKDIR /dashboard
+COPY dashboard /dashboard
+RUN npm install
+RUN npm run build
+
 # Use distroless as minimal base image to package the manager binary
 # Refer to https://github.com/GoogleContainerTools/distroless for more details
 FROM gcr.io/distroless/static:nonroot
@@ -26,6 +33,8 @@ LABEL org.opencontainers.image.source=https://github.com/dergeberl/kubeteach
 
 WORKDIR /
 COPY --from=builder /workspace/kubeteach .
+COPY --from=builder-vue /dashboard/dist /dashboard
+
 USER 65532:65532
 
 ENTRYPOINT ["/kubeteach"]
