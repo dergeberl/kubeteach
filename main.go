@@ -29,7 +29,7 @@ import (
 
 	kubeteachv1alpha1 "github.com/dergeberl/kubeteach/api/v1alpha1"
 	"github.com/dergeberl/kubeteach/controllers"
-	kubeteachapi "github.com/dergeberl/kubeteach/pkg/api"
+	kubeteachdashboard "github.com/dergeberl/kubeteach/pkg/dashboard"
 	kubeteachmetrics "github.com/dergeberl/kubeteach/pkg/metrics"
 
 	"k8s.io/apimachinery/pkg/runtime"
@@ -61,8 +61,9 @@ func main() {
 	var debugMode bool
 	var requeueTimeTaskDefinition int
 	var requeueTimeExerciseSet int
-	var enableAPI bool
-	var apiListenAddr string
+	var enableDashboard bool
+	var dashboardListenAddr string
+	var dashboardContent string
 	flag.StringVar(&metricsAddr, "metrics-bind-address", ":8080", "The address the metric endpoint binds to.")
 	flag.StringVar(&probeAddr, "health-probe-bind-address", ":8081", "The address the probe endpoint binds to.")
 	flag.BoolVar(&enableLeaderElection, "leader-elect", false,
@@ -73,9 +74,10 @@ func main() {
 		"sets the requeue time in seconds for active and pending tasks")
 	flag.IntVar(&requeueTimeExerciseSet, "requeue-time-exerciseset", 60, //nolint: gomnd
 		"sets the requeue time in seconds for exercisesets")
-	flag.BoolVar(&enableAPI, "api", false,
-		"Enable api for kubeteach dashboard.")
-	flag.StringVar(&apiListenAddr, "api-bind-address", ":8090", "The address api endpoint binds to.")
+	flag.BoolVar(&enableDashboard, "dashboard", false,
+		"Enable dashboard for kubeteach.")
+	flag.StringVar(&dashboardListenAddr, "dashboard-bind-address", ":8090", "Address that dashboard endpoint binds to.")
+	flag.StringVar(&dashboardContent, "dashboard-content", "/dashboard", "The folder that contains the static files for the dashboard.")
 
 	opts := zap.Options{
 		Development: debugMode,
@@ -137,9 +139,9 @@ func main() {
 	)
 
 	// start api if enabled
-	if enableAPI {
+	if enableDashboard {
 		setupLog.Info("starting api")
-		apiConfig := kubeteachapi.New(mgr.GetClient(), apiListenAddr)
+		apiConfig := kubeteachdashboard.New(mgr.GetClient(), dashboardListenAddr, dashboardContent)
 		go func() {
 			if err := apiConfig.Run(); err != nil {
 				setupLog.Error(err, "problem running api")

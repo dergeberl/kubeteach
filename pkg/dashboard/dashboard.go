@@ -32,8 +32,9 @@ import (
 
 // Config values for api
 type Config struct {
-	client     client.Client
-	listenAddr string
+	client           client.Client
+	listenAddr       string
+	dashboardContent string
 }
 
 type task struct {
@@ -55,10 +56,11 @@ type taskStatus struct {
 }
 
 // New creates a new config for the api
-func New(client client.Client, listenAddr string) Config {
+func New(client client.Client, listenAddr string, dashboardContent string) Config {
 	return Config{
-		client:     client,
-		listenAddr: listenAddr,
+		client:           client,
+		listenAddr:       listenAddr,
+		dashboardContent: dashboardContent,
 	}
 }
 
@@ -69,12 +71,17 @@ func (c *Config) Run() error {
 
 func (c *Config) configureChi() *chi.Mux {
 	r := chi.NewRouter()
-	r.Route("/api", func(r chi.Router) {
-		r.Route("/tasks", func(r chi.Router) {
-			r.Get("/", c.taskList)
-		})
-		r.Route("/taskstatus", func(r chi.Router) {
-			r.Get("/{uid}", c.taskStatus)
+	r.Route("/", func(r chi.Router) {
+		fs := http.FileServer(http.Dir(c.dashboardContent))
+		r.Handle("/*", fs)
+
+		r.Route("/api", func(r chi.Router) {
+			r.Route("/tasks", func(r chi.Router) {
+				r.Get("/", c.taskList)
+			})
+			r.Route("/taskstatus", func(r chi.Router) {
+				r.Get("/{uid}", c.taskStatus)
+			})
 		})
 	})
 	return r
