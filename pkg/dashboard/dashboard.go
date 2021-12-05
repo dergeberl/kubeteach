@@ -32,6 +32,14 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/chi/v5/middleware"
+)
+
+// Environment variables
+const (
+	EnvWebterminalCredentials     = "WEBTERMINAL_CREDENTIALS"
+	EnvDashboardBasicAuthUser     = "DASHBOARD_BASIC_AUTH_USER"
+	EnvDashboardBasicAuthPassword = "DASHBOARD_BASIC_AUTH_PASSWORD"
 )
 
 // Config values for api
@@ -39,6 +47,9 @@ type Config struct {
 	client                 client.Client
 	listenAddr             string
 	dashboardContent       string
+	basicAuthUser          string
+	basicAuthPassword      string
+	webterminalEnable      bool
 	webterminalHost        string
 	webterminalPort        string
 	webterminalCredentials string
@@ -67,17 +78,29 @@ func New(
 	client client.Client,
 	listenAddr string,
 	dashboardContent string,
+	basicAuthUser string,
+	basicAuthPassword string,
+	webterminalEnable bool,
 	webterminalHost string,
 	webterminalPort string,
 	webterminalCredentials string,
 ) Config {
-	if os.Getenv("WEBTERMINAL_CREDENTIALS") != "" {
-		webterminalCredentials = os.Getenv("WEBTERMINAL_CREDENTIALS")
+	if os.Getenv(EnvWebterminalCredentials) != "" {
+		webterminalCredentials = os.Getenv(EnvWebterminalCredentials)
+	}
+	if os.Getenv(EnvDashboardBasicAuthUser) != "" {
+		basicAuthUser = os.Getenv(EnvDashboardBasicAuthUser)
+	}
+	if os.Getenv(EnvDashboardBasicAuthPassword) != "" {
+		basicAuthPassword = os.Getenv(EnvDashboardBasicAuthPassword)
 	}
 	return Config{
 		client:                 client,
 		listenAddr:             listenAddr,
 		dashboardContent:       dashboardContent,
+		basicAuthUser:          basicAuthUser,
+		basicAuthPassword:      basicAuthPassword,
+		webterminalEnable:      webterminalEnable,
 		webterminalHost:        webterminalHost,
 		webterminalPort:        webterminalPort,
 		webterminalCredentials: webterminalCredentials,
@@ -91,6 +114,9 @@ func (c *Config) Run() error {
 
 func (c *Config) configureChi() *chi.Mux {
 	r := chi.NewRouter()
+	if c.basicAuthUser != "" || c.basicAuthPassword != "" {
+		r.Use(middleware.BasicAuth("", map[string]string{c.basicAuthUser: c.basicAuthPassword}))
+	}
 	r.Route("/", func(r chi.Router) {
 		fs := http.FileServer(http.Dir(c.dashboardContent))
 		r.Handle("/*", fs)
@@ -103,22 +129,11 @@ func (c *Config) configureChi() *chi.Mux {
 				r.Get("/{uid}", c.taskStatus)
 			})
 		})
-		r.Route("/shell", func(r chi.Router) {
-			r.HandleFunc("/*", func(writer http.ResponseWriter, request *http.Request) {
-				shellHost, _ := url.Parse("http://" + c.webterminalHost + ":" + c.webterminalPort + "/")
-				if c.webterminalCredentials != "" {
-					creds := strings.Split(c.webterminalCredentials, ":")
-					if len(creds) != 2 { //nolint:gomnd
-						// todo handle
-						panic("")
-					}
-					fmt.Println(creds)
-					request.SetBasicAuth(creds[0], creds[1])
-				}
-				fmt.Println(shellHost)
-				httputil.NewSingleHostReverseProxy(shellHost).ServeHTTP(writer, request)
+		if c.webterminalEnable {
+			r.Route("/shell", func(r chi.Router) {
+				r.HandleFunc("/*", c.webterminalForward)
 			})
-		})
+		}
 	})
 	return r
 }
@@ -171,4 +186,27 @@ func (c *Config) taskStatus(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	// todo handle error
+}
+
+func (c *Config) webterminalForward(writer http.ResponseWriter, request *http.Request) {
+	rev := httputil.ReverseProxy{Director: func(request *http.Request) {
+		shellHost, _ := url.Parse("http://" + c.webterminalCredentials + "@" + c.webterminalHost + ":" + c.webterminalPort + "/")
+
+		request.URL.Scheme = shellHost.Scheme
+		request.URL.Host = shellHost.Host
+		request.URL.RawQuery = shellHost.RawQuery + request.URL.RawQuery
+		if _, ok := request.Header["User-Agent"]; !ok {
+			request.Header.Set("User-Agent", "") // no default agent
+		}
+		if c.webterminalCredentials != "" {
+			creds := strings.Split(c.webterminalCredentials, ":")
+			if len(creds) != 2 { //nolint:gomnd
+				// todo handle
+				panic("")
+			}
+			request.SetBasicAuth(creds[0], creds[1])
+		}
+		request.Host = shellHost.Host
+	}}
+	rev.ServeHTTP(writer, request)
 }

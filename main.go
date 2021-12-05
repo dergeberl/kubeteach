@@ -64,6 +64,9 @@ func main() {
 	var enableDashboard bool
 	var dashboardListenAddr string
 	var dashboardContent string
+	var dashboardBasicAuthUser string
+	var dashboardBasicAuthPassword string
+	var dashboardWebterminalEnable bool
 	var dashboardWebterminalHost string
 	var dashboardWebterminalPort string
 	var dashboardWebterminalCredentials string
@@ -79,16 +82,27 @@ func main() {
 		"sets the requeue time in seconds for exercisesets")
 	flag.BoolVar(&enableDashboard, "dashboard", false,
 		"Enable dashboard for kubeteach.")
-	flag.StringVar(&dashboardListenAddr, "dashboard-bind-address", ":8090", "Address that dashboard endpoint binds to.")
-	flag.StringVar(&dashboardContent, "dashboard-content", "/dashboard", "The folder that contains the static files for the dashboard.")
-	flag.StringVar(&dashboardWebterminalHost, "dashboard-webterminal-host", "kubeteach-core-dashboard-webterminal", "TODO")
-	flag.StringVar(&dashboardWebterminalPort, "dashboard-webterminal-port", "8080", "TODO")
-	flag.StringVar(&dashboardWebterminalCredentials, "dashboard-webterminal-credentials", "", "TODO")
+	flag.StringVar(&dashboardListenAddr, "dashboard-bind-address", ":8090",
+		"Address that dashboard endpoint binds to.")
+	flag.StringVar(&dashboardContent, "dashboard-content", "/dashboard",
+		"The folder that contains the static files for the dashboard.")
+	flag.StringVar(&dashboardBasicAuthUser, "dashboard-basic-auth-user", "",
+		"Username for a basic auth. Can be also set via ENV: "+kubeteachdashboard.EnvDashboardBasicAuthUser)
+	flag.StringVar(&dashboardBasicAuthPassword, "dashboard-basic-auth-password", "",
+		"password for a basic auth. Can be also set via ENV: "+kubeteachdashboard.EnvDashboardBasicAuthPassword)
+	flag.BoolVar(&dashboardWebterminalEnable, "dashboard-webterminal", false,
+		"Enable webterminal forwarding in kubeteach dashboard.")
+	flag.StringVar(&dashboardWebterminalHost, "dashboard-webterminal-host", "kubeteach-core-dashboard-webterminal",
+		"Host for the webterminal container.")
+	flag.StringVar(&dashboardWebterminalPort, "dashboard-webterminal-port", "8080",
+		"Port for the webterminal Container.")
+	flag.StringVar(&dashboardWebterminalCredentials, "dashboard-webterminal-credentials", "",
+		"Basic auth for the connection to webterminal container (format user:password). "+
+			"Can be also set via ENV: "+kubeteachdashboard.EnvWebterminalCredentials)
 
 	opts := zap.Options{
 		Development: debugMode,
 	}
-	opts.BindFlags(flag.CommandLine)
 	flag.Parse()
 
 	ctrl.SetLogger(zap.New(zap.UseFlagOptions(&opts)))
@@ -150,6 +164,9 @@ func main() {
 		apiConfig := kubeteachdashboard.New(mgr.GetClient(),
 			dashboardListenAddr,
 			dashboardContent,
+			dashboardBasicAuthUser,
+			dashboardBasicAuthPassword,
+			dashboardWebterminalEnable,
 			dashboardWebterminalHost,
 			dashboardWebterminalPort,
 			dashboardWebterminalCredentials)
