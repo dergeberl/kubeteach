@@ -14,8 +14,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-// Package api to get metadata for dashboard
-package api
+// Package dashboard for kubeteach
+package dashboard
 
 import (
 	"context"
