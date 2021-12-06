@@ -161,7 +161,7 @@ func main() {
 	// start api if enabled
 	if enableDashboard {
 		setupLog.Info("starting api")
-		apiConfig := kubeteachdashboard.New(mgr.GetClient(),
+		dashboardConfig := kubeteachdashboard.New(mgr.GetClient(),
 			dashboardListenAddr,
 			dashboardContent,
 			dashboardBasicAuthUser,
@@ -171,7 +171,7 @@ func main() {
 			dashboardWebterminalPort,
 			dashboardWebterminalCredentials)
 		go func() {
-			if err := apiConfig.Run(); err != nil {
+			if err := dashboardConfig.Run(); err != nil {
 				setupLog.Error(err, "problem running api")
 				os.Exit(1)
 			}
