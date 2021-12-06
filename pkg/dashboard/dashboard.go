@@ -19,6 +19,7 @@ package dashboard
 
 import (
 	"context"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -26,7 +27,6 @@ import (
 	"net/url"
 	"os"
 	"sort"
-	"strings"
 
 	kubeteachv1alpha1 "github.com/dergeberl/kubeteach/api/v1alpha1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -139,15 +139,19 @@ func (c *Config) configureChi() *chi.Mux {
 }
 
 func (c *Config) taskList(w http.ResponseWriter, r *http.Request) {
+	if c.client == nil {
+		http.Error(w, "Kubernetes client not functional", http.StatusInternalServerError)
+		return
+	}
 	ctx := context.Background()
-	tasklist := &kubeteachv1alpha1.TaskDefinitionList{}
-	err := c.client.List(ctx, tasklist)
+	taskList := &kubeteachv1alpha1.TaskDefinitionList{}
+	err := c.client.List(ctx, taskList)
 	if err != nil {
-		// todo handle error
+		http.Error(w, "Kubernetes client not functional", http.StatusInternalServerError)
 		return
 	}
 	var tasksAPI tasks
-	for _, t := range tasklist.Items {
+	for _, t := range taskList.Items {
 		tasksAPI = append(tasksAPI, task{
 			Namespace:   t.Namespace,
 			Name:        t.Name,
@@ -159,52 +163,47 @@ func (c *Config) taskList(w http.ResponseWriter, r *http.Request) {
 	sort.Sort(tasksAPI)
 	output, err := json.Marshal(tasksAPI)
 	if err != nil {
-		// todo handle error
+		http.Error(w, "JSON could not be generated", http.StatusInternalServerError)
 		return
 	}
 	_, _ = fmt.Fprint(w, string(output))
 }
 
 func (c *Config) taskStatus(w http.ResponseWriter, r *http.Request) {
+	if c.client == nil {
+		http.Error(w, "Kubernetes client not functional", http.StatusInternalServerError)
+		return
+	}
 	ctx := context.Background()
 	uid := chi.URLParam(r, "uid")
 	taskList := &kubeteachv1alpha1.TaskDefinitionList{}
 	err := c.client.List(ctx, taskList)
 	if err != nil {
-		// todo handle error
+		http.Error(w, "Kubernetes client not functional", http.StatusInternalServerError)
 		return
 	}
 	for _, t := range taskList.Items {
 		if string(t.UID) == uid {
 			output, err := json.Marshal(taskStatus{Status: *t.Status.State})
 			if err != nil {
-				// todo handle error
+				http.Error(w, "JSON could not be generated", http.StatusInternalServerError)
 				return
 			}
 			_, _ = fmt.Fprint(w, string(output))
 			return
 		}
 	}
-	// todo handle error
+	http.Error(w, "No task with uid found", http.StatusNotFound)
 }
 
 func (c *Config) webterminalForward(writer http.ResponseWriter, request *http.Request) {
 	rev := httputil.ReverseProxy{Director: func(request *http.Request) {
 		shellHost, _ := url.Parse("http://" + c.webterminalCredentials + "@" + c.webterminalHost + ":" + c.webterminalPort + "/")
-
 		request.URL.Scheme = shellHost.Scheme
 		request.URL.Host = shellHost.Host
 		request.URL.RawQuery = shellHost.RawQuery + request.URL.RawQuery
-		if _, ok := request.Header["User-Agent"]; !ok {
-			request.Header.Set("User-Agent", "") // no default agent
-		}
 		if c.webterminalCredentials != "" {
-			creds := strings.Split(c.webterminalCredentials, ":")
-			if len(creds) != 2 { //nolint:gomnd
-				// todo handle
-				panic("")
-			}
-			request.SetBasicAuth(creds[0], creds[1])
+			request.Header.Add("Authorization", "Basic "+base64.StdEncoding.EncodeToString([]byte(c.webterminalCredentials)))
 		}
 		request.Host = shellHost.Host
 	}}

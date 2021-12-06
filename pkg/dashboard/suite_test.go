@@ -42,7 +42,6 @@ import (
 var cfg *rest.Config
 var k8sClient client.Client
 var testEnv *envtest.Environment
-var dashboard Config
 
 func TestAPIs(t *testing.T) {
 	RegisterFailHandler(Fail)
@@ -88,19 +87,6 @@ var _ = BeforeSuite(func(done Done) {
 
 	k8sClient = k8sManager.GetClient()
 	Expect(k8sClient).ToNot(BeNil())
-	dashboard = New(k8sClient,
-		":8090",
-		"./dashboard/dist/",
-		"",
-		"",
-		true,
-		"localhost",
-		"8081",
-		"")
-	go func() {
-		err := dashboard.Run()
-		Expect(err).ToNot(HaveOccurred())
-	}()
 	close(done)
 }, 60)
 
