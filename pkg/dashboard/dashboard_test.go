@@ -34,6 +34,7 @@ import (
 
 var _ = Describe("dashboard tests", func() {
 	Context("Run checks", func() {
+		timeout, retry := time.Second*5, time.Millisecond*100
 		ctx := context.Background()
 		var dashboard1 Config
 		dashboard1listen := "localhost:8090"
@@ -84,7 +85,7 @@ var _ = Describe("dashboard tests", func() {
 			Expect(k8sClient.Status().Update(ctx, &task2)).Should(Succeed())
 		})
 
-		It("create dashboard1", func() {
+		It("create shell dummy", func() {
 			r := chi.NewRouter()
 			r.Use(middleware.BasicAuth("", map[string]string{webterminalBasicAuthUser: webterminalBasicAuthPass}))
 			r.Route("/shell", func(r chi.Router) {
@@ -115,8 +116,12 @@ var _ = Describe("dashboard tests", func() {
 		})
 
 		It("get index", func() {
-			resp, err := http.Get("http://" + dashboard1listen + "/index.html")
-			Expect(err).Should(BeNil())
+			var resp *http.Response
+			var err error
+			Eventually(func() error {
+				resp, err = http.Get("http://" + dashboard1listen + "/index.html")
+				return err
+			}, timeout, retry).Should(BeNil())
 			_, err = ioutil.ReadAll(resp.Body)
 			Expect(err).Should(BeNil())
 			Expect(resp.StatusCode).Should(Equal(http.StatusOK))
@@ -124,8 +129,12 @@ var _ = Describe("dashboard tests", func() {
 		})
 
 		It("get tasks", func() {
-			resp, err := http.Get("http://" + dashboard1listen + "/api/tasks")
-			Expect(err).Should(BeNil())
+			var resp *http.Response
+			var err error
+			Eventually(func() error {
+				resp, err = http.Get("http://" + dashboard1listen + "/api/tasks")
+				return err
+			}, timeout, retry).Should(BeNil())
 			data, err := ioutil.ReadAll(resp.Body)
 			Expect(err).Should(BeNil())
 			Expect(resp.StatusCode).Should(Equal(http.StatusOK))
@@ -135,8 +144,12 @@ var _ = Describe("dashboard tests", func() {
 		})
 
 		It("get tasks status", func() {
-			resp, err := http.Get("http://" + dashboard1listen + "/api/taskstatus/" + string(task1.UID))
-			Expect(err).Should(BeNil())
+			var resp *http.Response
+			var err error
+			Eventually(func() error {
+				resp, err = http.Get("http://" + dashboard1listen + "/api/taskstatus/" + string(task1.UID))
+				return err
+			}, timeout, retry).Should(BeNil())
 			data, err := ioutil.ReadAll(resp.Body)
 			Expect(err).Should(BeNil())
 			Expect(resp.StatusCode).Should(Equal(http.StatusOK))
@@ -144,16 +157,24 @@ var _ = Describe("dashboard tests", func() {
 		})
 
 		It("get tasks status - fail no task found", func() {
-			resp, err := http.Get("http://" + dashboard1listen + "/api/taskstatus/wrong-id")
-			Expect(err).Should(BeNil())
+			var resp *http.Response
+			var err error
+			Eventually(func() error {
+				resp, err = http.Get("http://" + dashboard1listen + "/api/taskstatus/wrong-id")
+				return err
+			}, timeout, retry).Should(BeNil())
 			_, err = ioutil.ReadAll(resp.Body)
 			Expect(err).Should(BeNil())
 			Expect(resp.StatusCode).Should(Equal(http.StatusNotFound))
 		})
 
 		It("get shell endpoint", func() {
-			resp, err := http.Get("http://" + dashboard1listen + "/shell/")
-			Expect(err).Should(BeNil())
+			var resp *http.Response
+			var err error
+			Eventually(func() error {
+				resp, err = http.Get("http://" + dashboard1listen + "/shell/")
+				return err
+			}, timeout, retry).Should(BeNil())
 			_, err = ioutil.ReadAll(resp.Body)
 			Expect(err).Should(BeNil())
 			Expect(resp.StatusCode).Should(Equal(http.StatusOK))
@@ -177,15 +198,23 @@ var _ = Describe("dashboard tests", func() {
 		})
 
 		It("get tasks - fail", func() {
-			resp, err := http.Get("http://" + dashboard2listen + "/api/tasks")
-			Expect(err).Should(BeNil())
+			var resp *http.Response
+			var err error
+			Eventually(func() error {
+				resp, err = http.Get("http://" + dashboard2listen + "/api/tasks")
+				return err
+			}, timeout, retry).Should(BeNil())
 			_, err = ioutil.ReadAll(resp.Body)
 			Expect(err).Should(BeNil())
 			Expect(resp.StatusCode).Should(Equal(http.StatusInternalServerError))
 		})
 		It("get taskstatus - fail", func() {
-			resp, err := http.Get("http://" + dashboard2listen + "/api/taskstatus/" + string(task1.UID))
-			Expect(err).Should(BeNil())
+			var resp *http.Response
+			var err error
+			Eventually(func() error {
+				resp, err = http.Get("http://" + dashboard2listen + "/api/taskstatus/" + string(task1.UID))
+				return err
+			}, timeout, retry).Should(BeNil())
 			_, err = ioutil.ReadAll(resp.Body)
 			Expect(err).Should(BeNil())
 			Expect(resp.StatusCode).Should(Equal(http.StatusInternalServerError))
@@ -207,8 +236,12 @@ var _ = Describe("dashboard tests", func() {
 			}()
 		})
 		It("get tasks - fail 401", func() {
-			resp, err := http.Get("http://" + dashboard3listen + "/api/tasks")
-			Expect(err).Should(BeNil())
+			var resp *http.Response
+			var err error
+			Eventually(func() error {
+				resp, err = http.Get("http://" + dashboard3listen + "/api/tasks")
+				return err
+			}, timeout, retry).Should(BeNil())
 			_, err = ioutil.ReadAll(resp.Body)
 			Expect(err).Should(BeNil())
 			Expect(resp.StatusCode).Should(Equal(http.StatusUnauthorized))
@@ -218,8 +251,11 @@ var _ = Describe("dashboard tests", func() {
 			req, err := http.NewRequest("GET", "http://"+dashboard3listen+"/api/tasks", nil)
 			Expect(err).Should(BeNil())
 			req.SetBasicAuth(basicAuthUser, basicAuthPass)
-			resp, err := (&http.Client{Timeout: time.Second * 4}).Do(req)
-			Expect(err).Should(BeNil())
+			var resp *http.Response
+			Eventually(func() error {
+				resp, err = (&http.Client{Timeout: time.Second * 4}).Do(req)
+				return err
+			}, timeout, retry).Should(BeNil())
 			_, err = ioutil.ReadAll(resp.Body)
 			Expect(err).Should(BeNil())
 			Expect(resp.StatusCode).Should(Equal(http.StatusOK))
