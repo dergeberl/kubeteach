@@ -54,7 +54,7 @@ vet: ## Run go vet against code.
 lint: golangci-lint ## Run go lint against code.
 	$(GOLANGCI_LINT) run
 
-test: manifests generate fmt vet lint envtest ## Run tests.
+test: manifests generate fmt vet lint envtest build-dashboard ## Run tests.
 		KUBEBUILDER_ASSETS="$(shell $(ENVTEST) use $(ENVTEST_K8S_VERSION) -p path)" go test ./... -coverprofile cover.out
 
 ##@ Build

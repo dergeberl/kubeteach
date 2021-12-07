@@ -44,6 +44,9 @@ jobs:
       matrix:
         go: ['1.16', '1.17']
     steps:
+      - uses: actions/setup-node@v2
+        with:
+          node-version: '14'
       - uses: actions/setup-go@v1
         with:
           go-version: ${{ matrix.go }}
