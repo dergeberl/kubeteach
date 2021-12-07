@@ -63,7 +63,7 @@ build: generate fmt vet ## Build manager binary.
 	go build -o bin/manager main.go
 
 build-dashboard: generate fmt vet ## Build manager binary.
-	cd dashboard && npm run build
+	cd dashboard && npm ci && npm run build
 
 run: manifests generate fmt vet build-dashboard ## Run a controller from your host.
 	go run ./main.go -dashboard dashboard-content="dashboard/dist"
