@@ -3,7 +3,7 @@
         <button @click="lastTask">back</button>
 
         Tasks:
-        <select v-model="selectedTask" @change="cleanStatus">
+        <select v-model="selectedTask" @change="renewStatus">
             <option v-for="task of tasks" :key="task.uid" :value="task.uid">
                 {{ task.name }}
             </option>
@@ -30,8 +30,18 @@ import axios from "axios";
 
 let apiUrl = "/api/"
 
-function extractTasksFromResponse(response) {
+function extractResponseFromAxios(response) {
     return response.data
+}
+
+function fetchTaskStatus(taskID) {
+    return axios.get(apiUrl + `taskstatus/` + taskID)
+        .then(extractResponseFromAxios)
+}
+
+function fetchTasks() {
+    return axios.get(apiUrl + `tasks`)
+        .then(extractResponseFromAxios)
 }
 
 export default {
@@ -40,7 +50,8 @@ export default {
         return {
             tasks: [],
             selectedTask: "",
-            selectedTaskStatus: ""
+            selectedTaskStatus: "",
+            interval: null
         };
     },
     computed: {
@@ -57,59 +68,74 @@ export default {
             return tasks[0]
         }
     },
-    created() {
-        this.fetchTasks()
-            .then(extractTasksFromResponse)
+    mounted() {
+        fetchTasks()
             .then(this.saveTasksToData)
-            .then(tasks => {
-                if (!this.selectedTask) {
-                    this.selectedTask = tasks[0].uid
-                    this.getStatus()
-                }
-            })
+            .then(this.selectFirstTaskIfNoneSelected)
             .catch(e => console.error(e))
-            .then(() => setInterval(this.getStatus, 2000))
+            .then(this.setFetchTaskStatusInterval)
+    },
+    unmounted() {
+        this.cancelFetchTaskStatusInterval()
     },
     methods: {
-        fetchTasks() {
-            return axios.get(apiUrl + `tasks`)
+        renewStatus() {
+            return this.cleanStatus().then(this.getStatus)
+        },
+        cancelFetchTaskStatusInterval() {
+            if (this.interval) {
+                clearTimeout(this.interval)
+            }
+        },
+        setFetchTaskStatusInterval() {
+            // Cancel the old interval, to prevent multiple concurrent intervals
+            if (this.interval) {
+                this.cancelFetchTaskStatusInterval()
+            }
+            this.interval = setInterval(this.getStatus, 2000)
         },
         saveTasksToData(tasks) {
             this.tasks = tasks
             return tasks
         },
         cleanStatus() {
-            this.tasks.selectedTaskStatus = ""
-            this.getStatus()
+            return new Promise((resolve => {
+                this.tasks.selectedTaskStatus = ""
+                resolve()
+            }))
         },
-        async getStatus() {
+        getStatus() {
             if (this.selectedTask) {
-                try {
-                    const res = await axios.get(apiUrl + `taskstatus/` + this.selectedTask);
-                    this.selectedTaskStatus = res.data.status;
-                } catch (e) {
-                    console.error(e);
-                }
+                return fetchTaskStatus(this.selectedTask)
+                    .then(taskStatus => this.selectedTaskStatus = taskStatus.status)
+                    .catch(e => console.error(e))
             }
+            return new Promise(((resolve) => resolve()))
         },
         nextTask() {
             let found = false
             this.tasks.forEach(t => {
                 if (found) {
                     this.selectedTask = t.uid
-                    this.cleanStatus()
+                    this.renewStatus()
                     found = false
                 } else if (this.selectedTask === t.uid) {
                     found = true
                 }
             });
         },
+        selectFirstTaskIfNoneSelected: function (tasks) {
+            if (!this.selectedTask) {
+                this.selectedTask = tasks[0].uid
+                this.getStatus()
+            }
+        },
         lastTask() {
             let last = ""
             this.tasks.forEach(t => {
                 if (this.selectedTask === t.uid && last !== "") {
                     this.selectedTask = last
-                    this.cleanStatus()
+                    this.renewStatus()
                 }
                 last = t.uid
             });
