@@ -25,51 +25,36 @@
     <iframe src="/shell" id="shell"></iframe>
 </template>
 
-<script>
-import axios from "axios";
+<script lang="ts">
+import {defineComponent} from 'vue'
+import TaskService, {Task, TaskStatus} from "@/apis/TaskService"
 
-let apiUrl = "/api/"
-
-function extractResponseFromAxios(response) {
-    return response.data
-}
-
-function fetchTaskStatus(taskID) {
-    return axios.get(apiUrl + `taskstatus/` + taskID)
-        .then(extractResponseFromAxios)
-}
-
-function fetchTasks() {
-    return axios.get(apiUrl + `tasks`)
-        .then(extractResponseFromAxios)
-}
-
-export default {
+export default defineComponent({
     name: "Tasks",
     data() {
         return {
-            tasks: [],
-            selectedTask: "",
-            selectedTaskStatus: "",
-            interval: null
+            tasks: [] as Task[],
+            selectedTask: "" as string,
+            selectedTaskStatus: "" as string,
+            interval: null as any
         };
     },
     computed: {
-        task: function () {
+        task: function () : Task {
             if (typeof this.tasks !== "object")
-                return null
+                return {} as Task
 
-            let tasks = this.tasks.filter(task => task.uid === this.selectedTask)
+            let tasks = this.tasks.filter((task: Task) => task.uid === this.selectedTask)
 
             if (!tasks) {
-                return null
+                return {} as Task
             }
 
             return tasks[0]
         }
     },
     mounted() {
-        fetchTasks()
+        TaskService.listTasks()
             .then(this.saveTasksToData)
             .then(this.selectFirstTaskIfNoneSelected)
             .catch(e => console.error(e))
@@ -82,35 +67,35 @@ export default {
         renewStatus() {
             return this.cleanStatus().then(this.getStatus)
         },
-        cancelFetchTaskStatusInterval() {
+        cancelFetchTaskStatusInterval() : void {
             if (this.interval) {
                 clearTimeout(this.interval)
             }
         },
-        setFetchTaskStatusInterval() {
+        setFetchTaskStatusInterval() : void {
             // Cancel the old interval, to prevent multiple concurrent intervals
             if (this.interval) {
                 this.cancelFetchTaskStatusInterval()
             }
             this.interval = setInterval(this.getStatus, 2000)
         },
-        saveTasksToData(tasks) {
+        saveTasksToData(tasks: Task[]) : Task[] {
             this.tasks = tasks
             return tasks
         },
         cleanStatus() {
             return new Promise((resolve => {
-                this.tasks.selectedTaskStatus = ""
-                resolve()
+                this.selectedTaskStatus = ""
+                resolve(null)
             }))
         },
         getStatus() {
             if (this.selectedTask) {
-                return fetchTaskStatus(this.selectedTask)
-                    .then(taskStatus => this.selectedTaskStatus = taskStatus.status)
+                return TaskService.getTaskStatus(this.selectedTask)
+                    .then((taskStatus : TaskStatus) => this.selectedTaskStatus = taskStatus.status)
                     .catch(e => console.error(e))
             }
-            return new Promise(((resolve) => resolve()))
+            return new Promise(((resolve) => resolve(null)))
         },
         nextTask() {
             let found = false
@@ -124,7 +109,7 @@ export default {
                 }
             });
         },
-        selectFirstTaskIfNoneSelected: function (tasks) {
+        selectFirstTaskIfNoneSelected: function (tasks: Task[]) {
             if (!this.selectedTask) {
                 this.selectedTask = tasks[0].uid
                 this.getStatus()
@@ -141,7 +126,7 @@ export default {
             });
         }
     }
-}
+})
 
 </script>
 
