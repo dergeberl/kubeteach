@@ -66,7 +66,7 @@ build-dashboard: generate fmt vet ## Build manager binary.
 	cd dashboard && npm ci && npm run build
 
 run: manifests generate fmt vet build-dashboard ## Run a controller from your host.
-	go run ./main.go -dashboard dashboard-content="dashboard/dist"
+	go run ./main.go -dashboard -dashboard-content="./dashboard/dist"
 
 docker-build: test ## Build docker image with the manager.
 	docker build -t ${IMG} .
