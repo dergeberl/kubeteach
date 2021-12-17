@@ -64,7 +64,7 @@ helm install exerciseset1 <helm-chart> --namespace exerciseset --create-namespac
 
 :warning: The dashboard is an experimental feature. DO NOT MAKE IT AVAILABLE VIA INTERNET! :warning:
 
-To enable the dashboard you need to add to the helm install command from above the following settings:
+To enable the dashboard you need to add  2 settings for the helm install command (see above):
 ```bash
 --set kubeteach.dashboard.enabled=true --set kubeteach.webterminal.enabled=true
 ```
@@ -81,7 +81,7 @@ Username: kubeteach
 Password: <yourpassword>
 ```
 
-You will get a command which forwards a local port to the kubeteach container and also the username and password for login.
+The command will prompt a command (`kubectl port-forward`) and the credentials which are needed to log in into the dashboard.
 
 ### Update kubeteach
 
