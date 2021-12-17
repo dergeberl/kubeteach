@@ -60,6 +60,29 @@ helm install exerciseset1 <helm-chart> --namespace exerciseset --create-namespac
 :warning: Don't use the helm flag `--wait`, because some deployments won't get ready and the helm install command will fail.
 
 
+#### Enable kubeteach dashboard
+
+:warning: The dashboard is an experimental feature. DO NOT MAKE IT AVAILABLE VIA INTERNET! :warning:
+
+To enable the dashboard you need to add to the helm install command from above the following settings:
+```bash
+--set kubeteach.dashboard.enabled=true --set kubeteach.webterminal.enabled=true
+```
+
+Example:
+```bash
+helm install exerciseset1 <helm-chart> --namespace exerciseset --set kubeteach.dashboard.enabled=true --set kubeteach.webterminal.enabled=true
+...
+You can use it with the following command (to forward a local port):
+kubectl port-forward -n exerciseset service/kubeteach-core-dashboard 8080:80
+
+Now you can access the dashboard via http://localhost:8080
+Username: kubeteach
+Password: <yourpassword>
+```
+
+You will get a command which forwards a local port to the kubeteach container and also the username and password for login.
+
 ### Update kubeteach
 
 To update kubeteach you can run the following commands.
