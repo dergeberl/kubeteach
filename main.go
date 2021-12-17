@@ -29,6 +29,7 @@ import (
 
 	kubeteachv1alpha1 "github.com/dergeberl/kubeteach/api/v1alpha1"
 	"github.com/dergeberl/kubeteach/controllers"
+	kubeteachdashboard "github.com/dergeberl/kubeteach/pkg/dashboard"
 	kubeteachmetrics "github.com/dergeberl/kubeteach/pkg/metrics"
 
 	"k8s.io/apimachinery/pkg/runtime"
@@ -60,6 +61,15 @@ func main() {
 	var debugMode bool
 	var requeueTimeTaskDefinition int
 	var requeueTimeExerciseSet int
+	var enableDashboard bool
+	var dashboardListenAddr string
+	var dashboardContent string
+	var dashboardBasicAuthUser string
+	var dashboardBasicAuthPassword string
+	var dashboardWebterminalEnable bool
+	var dashboardWebterminalHost string
+	var dashboardWebterminalPort string
+	var dashboardWebterminalCredentials string
 	flag.StringVar(&metricsAddr, "metrics-bind-address", ":8080", "The address the metric endpoint binds to.")
 	flag.StringVar(&probeAddr, "health-probe-bind-address", ":8081", "The address the probe endpoint binds to.")
 	flag.BoolVar(&enableLeaderElection, "leader-elect", false,
@@ -70,10 +80,29 @@ func main() {
 		"sets the requeue time in seconds for active and pending tasks")
 	flag.IntVar(&requeueTimeExerciseSet, "requeue-time-exerciseset", 60, //nolint: gomnd
 		"sets the requeue time in seconds for exercisesets")
+	flag.BoolVar(&enableDashboard, "dashboard", false,
+		"Enable dashboard for kubeteach.")
+	flag.StringVar(&dashboardListenAddr, "dashboard-bind-address", ":8090",
+		"Address that dashboard endpoint binds to.")
+	flag.StringVar(&dashboardContent, "dashboard-content", "/dashboard",
+		"The folder that contains the static files for the dashboard.")
+	flag.StringVar(&dashboardBasicAuthUser, "dashboard-basic-auth-user", "",
+		"Username for a basic auth. Can be also set via ENV: "+kubeteachdashboard.EnvDashboardBasicAuthUser)
+	flag.StringVar(&dashboardBasicAuthPassword, "dashboard-basic-auth-password", "",
+		"password for a basic auth. Can be also set via ENV: "+kubeteachdashboard.EnvDashboardBasicAuthPassword)
+	flag.BoolVar(&dashboardWebterminalEnable, "dashboard-webterminal", false,
+		"Enable webterminal forwarding in kubeteach dashboard.")
+	flag.StringVar(&dashboardWebterminalHost, "dashboard-webterminal-host", "kubeteach-core-dashboard-webterminal",
+		"Host for the webterminal container.")
+	flag.StringVar(&dashboardWebterminalPort, "dashboard-webterminal-port", "8080",
+		"Port for the webterminal Container.")
+	flag.StringVar(&dashboardWebterminalCredentials, "dashboard-webterminal-credentials", "",
+		"Basic auth for the connection to webterminal container (format user:password). "+
+			"Can be also set via ENV: "+kubeteachdashboard.EnvWebterminalCredentials)
+
 	opts := zap.Options{
 		Development: debugMode,
 	}
-	opts.BindFlags(flag.CommandLine)
 	flag.Parse()
 
 	ctrl.SetLogger(zap.New(zap.UseFlagOptions(&opts)))
@@ -128,6 +157,26 @@ func main() {
 			ctrl.Log.WithName("metrics"),
 		),
 	)
+
+	// start api if enabled
+	if enableDashboard {
+		setupLog.Info("starting dashboard", "listenAddress", dashboardListenAddr)
+		dashboardConfig := kubeteachdashboard.New(mgr.GetClient(),
+			dashboardListenAddr,
+			dashboardContent,
+			dashboardBasicAuthUser,
+			dashboardBasicAuthPassword,
+			dashboardWebterminalEnable,
+			dashboardWebterminalHost,
+			dashboardWebterminalPort,
+			dashboardWebterminalCredentials)
+		go func() {
+			if err := dashboardConfig.Run(); err != nil {
+				setupLog.Error(err, "problem running api")
+				os.Exit(1)
+			}
+		}()
+	}
 
 	setupLog.Info("starting manager")
 	if err := mgr.Start(ctrl.SetupSignalHandler()); err != nil {

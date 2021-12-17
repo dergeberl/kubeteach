@@ -1,6 +1,6 @@
 
 # Image URL to use all building/pushing image targets
-IMG ?= ghcr.io/dergeberl/kubeteach:latest
+IMG ?= ghcr.io/dergeberl/kubeteach:dev
 # ENVTEST_K8S_VERSION refers to the version of kubebuilder assets to be downloaded by envtest binary.
 ENVTEST_K8S_VERSION = 1.20
 
@@ -54,7 +54,7 @@ vet: ## Run go vet against code.
 lint: golangci-lint ## Run go lint against code.
 	$(GOLANGCI_LINT) run
 
-test: manifests generate fmt vet lint envtest ## Run tests.
+test: manifests generate fmt vet lint envtest build-dashboard ## Run tests.
 		KUBEBUILDER_ASSETS="$(shell $(ENVTEST) use $(ENVTEST_K8S_VERSION) -p path)" go test ./... -coverprofile cover.out
 
 ##@ Build
@@ -62,8 +62,11 @@ test: manifests generate fmt vet lint envtest ## Run tests.
 build: generate fmt vet ## Build manager binary.
 	go build -o bin/manager main.go
 
-run: manifests generate fmt vet ## Run a controller from your host.
-	go run ./main.go
+build-dashboard: generate fmt vet ## Build manager binary.
+	cd dashboard && npm ci && npm run build
+
+run: manifests generate fmt vet build-dashboard ## Run a controller from your host.
+	go run ./main.go -dashboard -dashboard-content="./dashboard/dist"
 
 docker-build: test ## Build docker image with the manager.
 	docker build -t ${IMG} .

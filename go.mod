@@ -3,6 +3,7 @@ module github.com/dergeberl/kubeteach
 go 1.16
 
 require (
+	github.com/go-chi/chi/v5 v5.0.6
 	github.com/go-logr/logr v0.4.0
 	github.com/onsi/ginkgo v1.16.5
 	github.com/onsi/gomega v1.16.0
