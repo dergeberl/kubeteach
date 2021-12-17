@@ -198,7 +198,8 @@ func (c *Config) taskStatus(w http.ResponseWriter, r *http.Request) {
 
 func (c *Config) webterminalForward(writer http.ResponseWriter, request *http.Request) {
 	rev := httputil.ReverseProxy{Director: func(request *http.Request) {
-		shellHost, _ := url.Parse("http://" + c.webterminalCredentials + "@" + c.webterminalHost + ":" + c.webterminalPort + "/")
+		request.Header.Del("Authorization")
+		shellHost, _ := url.Parse("http://" + c.webterminalHost + ":" + c.webterminalPort + "/")
 		request.URL.Scheme = shellHost.Scheme
 		request.URL.Host = shellHost.Host
 		request.URL.RawQuery = shellHost.RawQuery + request.URL.RawQuery

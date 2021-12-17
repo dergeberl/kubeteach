@@ -160,7 +160,7 @@ func main() {
 
 	// start api if enabled
 	if enableDashboard {
-		setupLog.Info("starting api")
+		setupLog.Info("starting dashboard", "listenAddress", dashboardListenAddr)
 		dashboardConfig := kubeteachdashboard.New(mgr.GetClient(),
 			dashboardListenAddr,
 			dashboardContent,
