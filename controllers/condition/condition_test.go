@@ -19,6 +19,8 @@ package condition
 import (
 	"context"
 
+	"sigs.k8s.io/controller-runtime/pkg/log"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 )
@@ -34,7 +36,7 @@ var _ = Describe("TaskConditions ApplyChecks", func() {
 						Expect(k8sClient.Create(ctx, obj)).Should(Succeed())
 					}
 				}
-				c := Checks{Client: k8sClient, Log: nil}
+				c := Checks{Client: k8sClient, Log: log.Log}
 				got, gotErr := c.ApplyChecks(ctx, test.taskCondition)
 				Expect(got).Should(test.state)
 				Expect(gotErr).Should(test.err)
