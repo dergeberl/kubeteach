@@ -117,22 +117,16 @@ func (e *Exporter) Describe(descs chan<- *prometheus.Desc) {
 // Collect collects metrics for kubeteach
 func (e *Exporter) Collect(metrics chan<- prometheus.Metric) {
 	if e.k8sClient == nil {
-		if e.log != nil {
-			e.log.Error(errors.New("no k8s client found"), "failed to get data from kubernetes")
-		}
+		e.log.Error(errors.New("no k8s client found"), "failed to get data from kubernetes")
 		return
 	}
 	err := e.collectExerciseSet(metrics)
 	if err != nil {
-		if e.log != nil {
-			e.log.Error(err, "failed to get ExerciseSet metrics")
-		}
+		e.log.Error(err, "failed to get ExerciseSet metrics")
 	}
 	err = e.collectTask(metrics)
 	if err != nil {
-		if e.log != nil {
-			e.log.Error(err, "failed to get task metrics")
-		}
+		e.log.Error(err, "failed to get task metrics")
 	}
 }
 

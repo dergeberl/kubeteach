@@ -27,6 +27,7 @@ import (
 	. "github.com/onsi/gomega"
 	"github.com/prometheus/client_golang/prometheus/testutil"
 	ctrl "sigs.k8s.io/controller-runtime"
+	"sigs.k8s.io/controller-runtime/pkg/log"
 )
 
 var _ = Describe("metrics tests", func() {
@@ -106,7 +107,7 @@ var _ = Describe("metrics tests", func() {
 				New(nil, ctrl.Log.WithName("metrics")),
 			)
 			fmt.Println(testutil.CollectAndLint(
-				New(nil, nil),
+				New(nil, log.Log),
 			))
 		})
 	})
