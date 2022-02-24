@@ -59,7 +59,7 @@ function fetchTasks() {
 }
 
 export default {
-    name: "Tasks",
+    name: "KubeteachTasks",
     data() {
         return {
             showMenue: true,
