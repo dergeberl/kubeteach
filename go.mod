@@ -3,18 +3,18 @@ module github.com/dergeberl/kubeteach
 go 1.17
 
 require (
-	github.com/go-chi/chi/v5 v5.0.6
-	github.com/go-logr/logr v1.2.0
+	github.com/go-chi/chi/v5 v5.0.7
+	github.com/go-logr/logr v1.2.2
 	github.com/onsi/ginkgo v1.16.5
 	github.com/onsi/gomega v1.17.0
-	github.com/prometheus/client_golang v1.11.0
-	github.com/tidwall/gjson v1.13.0
+	github.com/prometheus/client_golang v1.11.1
+	github.com/tidwall/gjson v1.14.0
 	go.uber.org/automaxprocs v1.4.0
-	k8s.io/api v0.23.1
-	k8s.io/apimachinery v0.23.1
-	k8s.io/client-go v0.23.0
-	k8s.io/utils v0.0.0-20211208161948-7d6a63dca704
-	sigs.k8s.io/controller-runtime v0.11.0
+	k8s.io/api v0.23.4
+	k8s.io/apimachinery v0.23.4
+	k8s.io/client-go v0.23.4
+	k8s.io/utils v0.0.0-20220210201930-3a6ce19ff2f9
+	sigs.k8s.io/controller-runtime v0.11.1
 )
 
 require (
@@ -74,7 +74,7 @@ require (
 	k8s.io/klog/v2 v2.30.0 // indirect
 	k8s.io/kube-openapi v0.0.0-20211115234752-e816edb12b65 // indirect
 	sigs.k8s.io/json v0.0.0-20211020170558-c049b76a60c6 // indirect
-	sigs.k8s.io/structured-merge-diff/v4 v4.2.0 // indirect
+	sigs.k8s.io/structured-merge-diff/v4 v4.2.1 // indirect
 	sigs.k8s.io/yaml v1.3.0 // indirect
 )
 
