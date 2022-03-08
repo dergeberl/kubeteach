@@ -17,7 +17,6 @@ limitations under the License.
 package dashboard
 
 import (
-	"context"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -35,7 +34,6 @@ import (
 var _ = Describe("dashboard tests", func() {
 	Context("Run checks", func() {
 		timeout, retry := time.Second*5, time.Millisecond*100
-		ctx := context.Background()
 		var dashboard1 Config
 		dashboard1listen := "localhost:8090"
 		webterminalBasicAuthUser := "webterminaltestuser"

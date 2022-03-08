@@ -17,7 +17,6 @@ limitations under the License.
 package controllers
 
 import (
-	"context"
 	"errors"
 	"time"
 
@@ -33,8 +32,6 @@ import (
 var _ = Describe("ExerciseSet tests", func() {
 	timeout, retry := time.Second*10, time.Millisecond*300
 	Context("Run checks", func() {
-		ctx := context.Background()
-
 		It("apply ExerciseSet", func() {
 			Expect(k8sClient.Create(ctx, &testsExerciseSet.exerciseSet)).Should(Succeed())
 		})

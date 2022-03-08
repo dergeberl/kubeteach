@@ -17,7 +17,6 @@ limitations under the License.
 package metrics
 
 import (
-	"context"
 	"fmt"
 
 	"github.com/dergeberl/kubeteach/controllers"
@@ -32,8 +31,6 @@ import (
 
 var _ = Describe("metrics tests", func() {
 	Context("Run checks", func() {
-		ctx := context.Background()
-
 		It("apply ExerciseSet", func() {
 			Expect(k8sClient.Create(ctx, &testsExerciseSet.exerciseSet)).Should(Succeed())
 		})
