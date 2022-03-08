@@ -17,7 +17,6 @@ limitations under the License.
 package controllers
 
 import (
-	"context"
 	"errors"
 	"fmt"
 	"strings"
@@ -37,8 +36,6 @@ import (
 var _ = Describe("TaskConditions tests", func() {
 	timeout, retry := time.Second*5, time.Millisecond*300
 	Context("Run checks in checkItems", func() {
-		ctx := context.Background()
-
 		It("apply taskDefinitions", func() {
 			for _, test := range testsTaskDefinition {
 				Expect(k8sClient.Create(ctx, &test.taskDefinition)).Should(Succeed())
