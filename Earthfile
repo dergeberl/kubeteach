@@ -45,9 +45,7 @@ docker:
     COPY --platform=linux/amd64 (+build-vue/dist) /dashboard
     USER 65532:65532
     ENTRYPOINT ["/kubeteach"]
-    FOR tag IN $(echo $DOCKER_REPO)
-          SAVE IMAGE --push ${tag}
-    END
+    SAVE IMAGE --push DOCKER_REPO
 
 multiarch-docker:
     BUILD --platform=linux/amd64 +docker
