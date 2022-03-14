@@ -9,77 +9,36 @@ on:
     branches: [ main ]
 
 jobs:
-  generate:
-    name: generate
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/setup-go@v1
-        with:
-          go-version: 1.17
-      - uses: actions/checkout@v2
-      - name: run-generate
-        run: |
-          make generate
-          make manifests
-          git diff --name-only --exit-code
-          git diff --name-only --staged --exit-code
-  golangci:
-    name: lint
-    needs: [ generate ]
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-go@v1
-        with:
-          go-version: 1.17
-      - name: golangci-lint
-        run: |
-          make lint
   test:
     name: tests
     runs-on: ubuntu-latest
-    needs: [ generate ]
-    strategy:
-      fail-fast: false
-      matrix:
-        go: ['1.17']
     steps:
-      - uses: actions/setup-node@v2
-        with:
-          node-version: '16'
       - uses: actions/setup-go@v1
         with:
-          go-version: ${{ matrix.go }}
+          go-version: 1.17
       - uses: actions/checkout@v2
-      - name: install-test-tools-and-go-test
+      - uses: earthly/actions-setup@v1
+        with:
+          version: "latest"
+      - name: run-generate
         run: |
-          make test
+          earthly +generate
+          earthly +manifests
+          git diff --name-only --exit-code
+          git diff --name-only --staged --exit-code
+      - name: golangci-lint
+        run: |
+          earthly -ci +lint
+      - name: run tests
+        run: |
+          earthly test
       - name: Send coverage
         uses: shogo82148/actions-goveralls@v1
         with:
           path-to-profile: cover.out
-          flag-name: Go-${{ matrix.go }}
-          parallel: true
-  coveralls-finish:
-    needs: test
-    runs-on: ubuntu-latest
-    steps:
-      - uses: shogo82148/actions-goveralls@v1
-        with:
-          parallel-finished: true
-  deploy-test:
-    needs: [ golangci, test ]
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - name: Build docker image
-        id: docker_build
-        uses: docker/build-push-action@v2
-        with:
-          context: .
-          file: ./Dockerfile
-          push: false
-          tags: local-kind-test:test
+      - name: build test image
+        run: |
+          earthly +docker --DOCKER_REPO=local-kind-test:test
       - name: Create k8s Kind Cluster
         uses: helm/kind-action@v1.2.0
         with:
@@ -106,33 +65,11 @@ jobs:
           kubectl get task task01 -o jsonpath='{.status.state}' | grep successful
           kubectl get task task02 -o jsonpath='{.status.state}' | grep active
           kubectl get task task03 -o jsonpath='{.status.state}' | grep pending
-  exerciseset1-test:
-    needs: [ golangci, test ]
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - name: Build docker image
-        id: docker_build
-        uses: docker/build-push-action@v2
-        with:
-          context: .
-          file: ./Dockerfile
-          push: false
-          tags: local-kind-test:test
-      - name: Create k8s Kind Cluster
-        uses: helm/kind-action@v1.2.0
-        with:
-          version: v0.12.0
-          cluster_name: kind
-      - name: Install Helm
-        uses: azure/setup-helm@v1
-        with:
-          version: v3.4.0
       - name: Deploy helm-chart
         run: |
           kind load docker-image local-kind-test:test
           helm repo add kubeteach https://dergeberl.github.io/kubeteach-charts
-          helm install kubeteach kubeteach/kubeteach-exerciseset1 --namespace kubeteach-system --create-namespace --set kubeteach.image.pullPolicy=IfNotPresent --set kubeteach.image.repository=local-kind-test --set kubeteach.image.tag=test --set kubeteach.serviceAccount.name=kubeteach
+          helm install kubeteach kubeteach/kubeteach-exerciseset1 --namespace kubeteach-exerciseset1 --create-namespace --set kubeteach.image.pullPolicy=IfNotPresent --set kubeteach.image.repository=local-kind-test --set kubeteach.image.tag=test --set kubeteach.serviceAccount.name=kubeteach
       - name: wait for kubeteach to get ready
         run: |
           kubectl wait --for=condition=available --timeout=600s -n kubeteach-system deployment/kubeteach

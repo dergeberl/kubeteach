@@ -45,7 +45,7 @@ docker:
     COPY --platform=linux/amd64 (+build-vue/dist) /dashboard
     USER 65532:65532
     ENTRYPOINT ["/kubeteach"]
-    SAVE IMAGE --push DOCKER_REPO
+    SAVE IMAGE --push $DOCKER_REPO
 
 multiarch-docker:
     BUILD --platform=linux/amd64 +docker
@@ -62,7 +62,7 @@ test:
     #ARG GO_TEST="go test -race -coverprofile cover.out ./..."
     RUN eval `setup-envtest use -p env $KUBERNETES_VERSION` && \
         CGO_ENABLED=1 go test -race -coverprofile cover.out ./...
-    SAVE ARTIFACT cover.out
+    SAVE ARTIFACT cover.out AS LOCAL cover.out
 
 coverage:
     FROM +deps
