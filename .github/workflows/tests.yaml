@@ -16,25 +16,18 @@ jobs:
       FORCE_COLOR: 1
     steps:
       - uses: actions/checkout@v2
-      - uses: earthly/actions-setup@v1
+      - name: Setup earthly
+        uses: earthly/actions-setup@v1
         with:
           version: "latest"
-      - name: Run generate and manifests
+      - name: Run ci tests
         run: |
-          earthly +generate
-          earthly +manifests
-          git diff --name-only --exit-code
-          git diff --name-only --staged --exit-code
-      - name: Run golangci-lint
-        run: |
-          earthly -ci +lint
-      - name: run tests
-        run: |
-          earthly +test
+          earthly --use-inline-cache --save-inline-cache --strict +ci
       - name: Send coverage
         uses: shogo82148/actions-goveralls@v1
         with:
           path-to-profile: cover.out
+      # prepare test setup with kind
       - name: Build test image
         run: |
           earthly +docker --DOCKER_REPO=local-kind-test:test
@@ -47,12 +40,15 @@ jobs:
         uses: azure/setup-helm@v1
         with:
           version: v3.4.0
-      - name: Deploy ci test helm-chart
+      - name: Setup kind and helm
         run: |
           kind load docker-image local-kind-test:test
           helm repo add kubeteach https://dergeberl.github.io/kubeteach-charts
+      # tests with example tasks
+      - name: Deploy ci test helm-chart
+        run: |
           helm install kubeteach kubeteach/kubeteach-core --namespace kubeteach-system --wait --timeout 120s --create-namespace --set image.pullPolicy=IfNotPresent --set image.repository=local-kind-test --set image.tag=test --set serviceAccount.name=kubeteach
-      - name: Deploy kubeteach-example to kind cluster
+      - name: Deploy kubeteach-example file to kind cluster
         run: |
           kubectl apply -f .github/kind-test-taskdefinitions.yaml
           sleep 15
@@ -64,15 +60,14 @@ jobs:
           kubectl get task task01 -o jsonpath='{.status.state}' | grep successful
           kubectl get task task02 -o jsonpath='{.status.state}' | grep active
           kubectl get task task03 -o jsonpath='{.status.state}' | grep pending
+      # tests with exerciseset1
       - name: Deploy exerciseset1 helm-chart
         run: |
-          kind load docker-image local-kind-test:test
-          helm repo add kubeteach https://dergeberl.github.io/kubeteach-charts
           helm install kubeteach kubeteach/kubeteach-exerciseset1 --namespace kubeteach-exerciseset1 --create-namespace --set kubeteach.image.pullPolicy=IfNotPresent --set kubeteach.image.repository=local-kind-test --set kubeteach.image.tag=test --set kubeteach.serviceAccount.name=kubeteach
       - name: Wait for kubeteach to get ready
         run: |
           kubectl wait --for=condition=available --timeout=600s -n kubeteach-exerciseset1 deployment/kubeteach
-          sleep 15
+          sleep 10
       - name: Apply solutions and check task
         run: |
           bash .github/test-exerciseset1.sh

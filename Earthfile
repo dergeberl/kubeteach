@@ -83,12 +83,25 @@ manifests:
     RUN controller-gen crd paths="./..." output:crd:artifacts:config=crds
     SAVE ARTIFACT crds AS LOCAL crds
 
+check-manifests:
+    FROM +deps
+    COPY --dir crds/ .
+    COPY +manifests/crds crds-new
+    RUN diff crds crds-new
+
 generate:
     FROM +deps
     COPY +gotools/bin/* $BINPATH
     COPY --dir api/ pkg/ controllers/ hack/ main.go .
     RUN controller-gen object:headerFile="hack/boilerplate.go.txt" paths="./..."
     SAVE ARTIFACT api AS LOCAL api
+
+check-generate:
+    FROM +deps
+    COPY --dir api/ .
+    COPY +generate/api api-new
+    RUN diff -r api api-new
+
 
 all:
     BUILD +deps
@@ -103,3 +116,11 @@ gotools:
     RUN GOBIN=/go/bin go get github.com/golangci/golangci-lint/cmd/golangci-lint@v1.43.0
     RUN GOBIN=/go/bin go get sigs.k8s.io/controller-tools/cmd/controller-gen@v0.8.0
     SAVE ARTIFACT /go/bin
+
+ci:
+    BUILD +deps
+    BUILD +check-generate
+    BUILD +check-manifests
+    BUILD +lint
+    BUILD +test
+    BUILD +coverage
