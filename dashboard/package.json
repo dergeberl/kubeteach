@@ -9,10 +9,10 @@
     "start": "vue-cli-service serve"
   },
   "dependencies": {
-    "axios": "^0.24.0",
+    "axios": "^0.27.2",
     "core-js": "^3.6.5",
     "vue": "^2.6.14",
-    "vuetify": "^2.4.0",
+    "vuetify": "^2.6.4",
     "node-forge": ">=1.0.0",
     "postcss": ">=8.2.13"
   },
