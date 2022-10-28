@@ -22,12 +22,12 @@ import (
 	"reflect"
 	"time"
 
-	"github.com/go-logr/logr"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/log"
 
 	kubeteachv1alpha1 "github.com/dergeberl/kubeteach/api/v1alpha1"
 )
@@ -35,7 +35,6 @@ import (
 // ExerciseSetReconciler reconciles a ExerciseSet object
 type ExerciseSetReconciler struct {
 	client.Client
-	Log         logr.Logger
 	Scheme      *runtime.Scheme
 	RequeueTime time.Duration
 }
@@ -47,7 +46,7 @@ type ExerciseSetReconciler struct {
 
 // Reconcile handles reconcile of an ExersiceSet
 func (r *ExerciseSetReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
-	_ = r.Log.WithValues("exerciseset", req.NamespacedName)
+	_ = log.FromContext(ctx)
 
 	var exerciseSet kubeteachv1alpha1.ExerciseSet
 	err := r.Client.Get(ctx, req.NamespacedName, &exerciseSet)

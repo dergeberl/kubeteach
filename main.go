@@ -122,7 +122,6 @@ func main() {
 
 	if err = (&controllers.TaskDefinitionReconciler{
 		Client:      mgr.GetClient(),
-		Log:         ctrl.Log.WithName("controllers").WithName("TaskDefinition"),
 		Scheme:      mgr.GetScheme(),
 		Recorder:    mgr.GetEventRecorderFor("Task"),
 		RequeueTime: time.Duration(requeueTimeTaskDefinition) * time.Second,
@@ -132,7 +131,6 @@ func main() {
 	}
 	if err = (&controllers.ExerciseSetReconciler{
 		Client:      mgr.GetClient(),
-		Log:         ctrl.Log.WithName("controllers").WithName("ExerciseSet"),
 		Scheme:      mgr.GetScheme(),
 		RequeueTime: time.Duration(requeueTimeExerciseSet) * time.Second,
 	}).SetupWithManager(mgr); err != nil {

@@ -24,7 +24,6 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/go-logr/logr"
 	"github.com/tidwall/gjson"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime/schema"
@@ -36,7 +35,6 @@ import (
 // Checks is used for configuration of the condition checks
 type Checks struct {
 	Client client.Client
-	Log    logr.Logger
 }
 
 // ApplyChecks apply all TaskConditions and returns true if all conditions are successful
