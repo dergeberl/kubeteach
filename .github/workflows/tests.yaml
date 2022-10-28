@@ -16,7 +16,7 @@ jobs:
       - uses: actions/setup-go@v1
         with:
           go-version: 1.17
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: run-generate
         run: |
           make generate
@@ -28,7 +28,7 @@ jobs:
     needs: [ generate ]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - uses: actions/setup-go@v1
         with:
           go-version: 1.17
@@ -50,7 +50,7 @@ jobs:
       - uses: actions/setup-go@v1
         with:
           go-version: ${{ matrix.go }}
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: install-test-tools-and-go-test
         run: |
           make test
@@ -71,7 +71,7 @@ jobs:
     needs: [ golangci, test ]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Build docker image
         id: docker_build
         uses: docker/build-push-action@v2
@@ -110,7 +110,7 @@ jobs:
     needs: [ golangci, test ]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Build docker image
         id: docker_build
         uses: docker/build-push-action@v2
