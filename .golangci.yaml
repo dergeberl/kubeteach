@@ -26,7 +26,6 @@ linters-settings:
 linters:
   enable:
     - bodyclose
-    - deadcode
     - depguard
     - errcheck
     - gocritic
@@ -42,11 +41,8 @@ linters:
     - lll
     - misspell
     - nolintlint
-    - rowserrcheck
-    - structcheck
     - stylecheck
     - unused
-    - varcheck
     - vet
     - whitespace
 
