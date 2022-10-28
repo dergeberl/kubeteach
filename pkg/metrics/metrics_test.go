@@ -22,8 +22,9 @@ import (
 	"github.com/dergeberl/kubeteach/controllers"
 	"k8s.io/utils/pointer"
 
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+
 	"github.com/prometheus/client_golang/prometheus/testutil"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/log"
