@@ -18,7 +18,7 @@ package dashboard
 
 import (
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"time"
 
@@ -92,7 +92,12 @@ var _ = Describe("dashboard tests", func() {
 				})
 			})
 			go func() {
-				err := http.ListenAndServe(webterminalListen, r)
+				server := &http.Server{
+					Addr:              webterminalListen,
+					ReadHeaderTimeout: 15 * time.Second,
+					Handler:           r,
+				}
+				err := server.ListenAndServe()
 				Expect(err).ToNot(HaveOccurred())
 			}()
 		})
@@ -120,7 +125,7 @@ var _ = Describe("dashboard tests", func() {
 				resp, err = http.Get("http://" + dashboard1listen + "/index.html")
 				return err
 			}, timeout, retry).Should(BeNil())
-			_, err = ioutil.ReadAll(resp.Body)
+			_, err = io.ReadAll(resp.Body)
 			Expect(err).Should(BeNil())
 			Expect(resp.StatusCode).Should(Equal(http.StatusOK))
 
@@ -133,7 +138,7 @@ var _ = Describe("dashboard tests", func() {
 				resp, err = http.Get("http://" + dashboard1listen + "/api/tasks")
 				return err
 			}, timeout, retry).Should(BeNil())
-			data, err := ioutil.ReadAll(resp.Body)
+			data, err := io.ReadAll(resp.Body)
 			Expect(err).Should(BeNil())
 			Expect(resp.StatusCode).Should(Equal(http.StatusOK))
 			Expect(string(data)).
@@ -148,7 +153,7 @@ var _ = Describe("dashboard tests", func() {
 				resp, err = http.Get("http://" + dashboard1listen + "/api/taskstatus/" + string(task1.UID))
 				return err
 			}, timeout, retry).Should(BeNil())
-			data, err := ioutil.ReadAll(resp.Body)
+			data, err := io.ReadAll(resp.Body)
 			Expect(err).Should(BeNil())
 			Expect(resp.StatusCode).Should(Equal(http.StatusOK))
 			Expect(string(data)).Should(Equal("{\"status\":\"active\"}"))
@@ -161,7 +166,7 @@ var _ = Describe("dashboard tests", func() {
 				resp, err = http.Get("http://" + dashboard1listen + "/api/taskstatus/wrong-id")
 				return err
 			}, timeout, retry).Should(BeNil())
-			_, err = ioutil.ReadAll(resp.Body)
+			_, err = io.ReadAll(resp.Body)
 			Expect(err).Should(BeNil())
 			Expect(resp.StatusCode).Should(Equal(http.StatusNotFound))
 		})
@@ -173,7 +178,7 @@ var _ = Describe("dashboard tests", func() {
 				resp, err = http.Get("http://" + dashboard1listen + "/shell/")
 				return err
 			}, timeout, retry).Should(BeNil())
-			_, err = ioutil.ReadAll(resp.Body)
+			_, err = io.ReadAll(resp.Body)
 			Expect(err).Should(BeNil())
 			Expect(resp.StatusCode).Should(Equal(http.StatusOK))
 
@@ -202,7 +207,7 @@ var _ = Describe("dashboard tests", func() {
 				resp, err = http.Get("http://" + dashboard2listen + "/api/tasks")
 				return err
 			}, timeout, retry).Should(BeNil())
-			_, err = ioutil.ReadAll(resp.Body)
+			_, err = io.ReadAll(resp.Body)
 			Expect(err).Should(BeNil())
 			Expect(resp.StatusCode).Should(Equal(http.StatusInternalServerError))
 		})
@@ -213,7 +218,7 @@ var _ = Describe("dashboard tests", func() {
 				resp, err = http.Get("http://" + dashboard2listen + "/api/taskstatus/" + string(task1.UID))
 				return err
 			}, timeout, retry).Should(BeNil())
-			_, err = ioutil.ReadAll(resp.Body)
+			_, err = io.ReadAll(resp.Body)
 			Expect(err).Should(BeNil())
 			Expect(resp.StatusCode).Should(Equal(http.StatusInternalServerError))
 		})
@@ -240,7 +245,7 @@ var _ = Describe("dashboard tests", func() {
 				resp, err = http.Get("http://" + dashboard3listen + "/api/tasks")
 				return err
 			}, timeout, retry).Should(BeNil())
-			_, err = ioutil.ReadAll(resp.Body)
+			_, err = io.ReadAll(resp.Body)
 			Expect(err).Should(BeNil())
 			Expect(resp.StatusCode).Should(Equal(http.StatusUnauthorized))
 		})
@@ -254,7 +259,7 @@ var _ = Describe("dashboard tests", func() {
 				resp, err = (&http.Client{Timeout: time.Second * 4}).Do(req)
 				return err
 			}, timeout, retry).Should(BeNil())
-			_, err = ioutil.ReadAll(resp.Body)
+			_, err = io.ReadAll(resp.Body)
 			Expect(err).Should(BeNil())
 			Expect(resp.StatusCode).Should(Equal(http.StatusOK))
 		})

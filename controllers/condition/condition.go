@@ -121,7 +121,7 @@ func (c *Checks) runResourceCondition(
 
 	switch resourceCondition.Operator {
 	case "gt":
-		checkValue, err := strconv.ParseInt(resourceCondition.Value, 10, 0) //nolint: gomnd
+		checkValue, err := strconv.ParseInt(resourceCondition.Value, 10, 0)
 		if err != nil {
 			return false, err
 		}
@@ -137,7 +137,7 @@ func (c *Checks) runResourceCondition(
 			return true, nil
 		}
 	case "lt":
-		checkValue, err := strconv.ParseInt(resourceCondition.Value, 10, 0) //nolint: gomnd
+		checkValue, err := strconv.ParseInt(resourceCondition.Value, 10, 0)
 		if err != nil {
 			return false, err
 		}

@@ -15,9 +15,9 @@ limitations under the License.
 */
 
 // Package v1alpha1 contains API Schema definitions for the kubeteach v1alpha1 API group
-//+kubebuilder:object:generate=true
+// +kubebuilder:object:generate=true
 // +kubebuilder:validation:Required
-//+groupName=kubeteach.geberl.io
+// +groupName=kubeteach.geberl.io
 package v1alpha1
 
 import (
