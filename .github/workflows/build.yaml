@@ -16,7 +16,7 @@ jobs:
       uses: actions/checkout@v2
     - name: Generate docker metadata
       id: docker_meta
-      uses: docker/metadata-action@v3
+      uses: docker/metadata-action@v4
       with:
         images: ghcr.io/dergeberl/kubeteach,dergeberl/kubeteach
     - name: Set up QEMU
