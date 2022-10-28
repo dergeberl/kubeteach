@@ -27,6 +27,7 @@ import (
 	"net/url"
 	"os"
 	"sort"
+	"time"
 
 	kubeteachv1alpha1 "github.com/dergeberl/kubeteach/api/v1alpha1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -109,7 +110,12 @@ func New(
 
 // Run api webserver
 func (c *Config) Run() error {
-	return http.ListenAndServe(c.listenAddr, c.configureChi())
+	server := &http.Server{
+		Addr:              c.listenAddr,
+		ReadHeaderTimeout: 15 * time.Second, //nolint: gomnd // static timeout
+		Handler:           c.configureChi(),
+	}
+	return server.ListenAndServe()
 }
 
 func (c *Config) configureChi() *chi.Mux {
