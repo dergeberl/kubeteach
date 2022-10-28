@@ -23,7 +23,6 @@ import (
 	"reflect"
 	"time"
 
-	"github.com/go-logr/logr"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -31,6 +30,7 @@ import (
 	"k8s.io/client-go/tools/record"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/log"
 
 	teachv1alpha1 "github.com/dergeberl/kubeteach/api/v1alpha1"
 	"github.com/dergeberl/kubeteach/controllers/condition"
@@ -46,7 +46,6 @@ const (
 // TaskDefinitionReconciler reconciles a TaskDefinition object
 type TaskDefinitionReconciler struct {
 	client.Client
-	Log         logr.Logger
 	Scheme      *runtime.Scheme
 	Recorder    record.EventRecorder
 	RequeueTime time.Duration
@@ -61,9 +60,7 @@ type TaskDefinitionReconciler struct {
 
 // Reconcile handles all about taskdefinitions and tasks
 func (r *TaskDefinitionReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
-	_ = r.Log.WithValues("taskdefinition", req.NamespacedName)
-
-	_ = r.Log.WithValues("taskdefinition", req.NamespacedName)
+	_ = log.FromContext(ctx)
 
 	// get current taskDefinition
 	taskDefinition := teachv1alpha1.TaskDefinition{}
@@ -110,7 +107,6 @@ func (r *TaskDefinitionReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 	// run ConditionChecks checks
 	ConditionChecks := condition.Checks{
 		Client: r.Client,
-		Log:    r.Log,
 	}
 	status, err := ConditionChecks.ApplyChecks(ctx, taskDefinition.Spec.TaskConditions)
 	if err != nil {
