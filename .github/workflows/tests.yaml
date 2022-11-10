@@ -68,7 +68,7 @@ jobs:
         with:
           parallel-finished: true
   deploy-test:
-    needs: [ golangci, test ]
+    needs: [ generate ]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -105,7 +105,7 @@ jobs:
           kubectl get task task02 -o jsonpath='{.status.state}' | grep active
           kubectl get task task03 -o jsonpath='{.status.state}' | grep pending
   exerciseset1-test:
-    needs: [ golangci, test ]
+    needs: [ generate ]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
