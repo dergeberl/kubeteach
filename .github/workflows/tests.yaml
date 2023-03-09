@@ -67,6 +67,55 @@ jobs:
       - uses: shogo82148/actions-goveralls@v1
         with:
           parallel-finished: true
+  dashboard-test:
+    needs: [ generate ]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Build docker image
+        id: docker_build
+        uses: docker/build-push-action@v4
+        with:
+          context: .
+          file: ./Dockerfile
+          push: false
+          tags: local-kind-test:test
+      - name: Create k8s Kind Cluster
+        uses: helm/kind-action@v1.5.0
+        with:
+          version: v0.17.0
+          cluster_name: kind
+      - name: Install Helm
+        uses: azure/setup-helm@v3
+      - name: Install MetalLb
+        run: |
+          kubectl apply -f https://raw.githubusercontent.com/metallb/metallb/v0.13.7/config/manifests/metallb-native.yaml
+          docker network inspect -f '{{.IPAM.Config}}' kind
+          kubectl wait --namespace metallb-system --for=condition=ready pod --selector=app=metallb --timeout=90s
+          kubectl apply -f https://kind.sigs.k8s.io/examples/loadbalancer/metallb-config.yaml
+          kubectl patch ipaddresspools.metallb.io --namespace metallb-system example --type merge --patch '{"spec":{"addresses":["172.18.255.200-172.18.255.250"]}}'
+      - name: Deploy helm-chart
+        run: |
+          kind load docker-image local-kind-test:test
+          helm repo add kubeteach https://dergeberl.github.io/kubeteach-charts
+          helm install kubeteach kubeteach/kubeteach-core --namespace kubeteach-system --wait --timeout 120s --create-namespace --set image.pullPolicy=IfNotPresent --set image.repository=local-kind-test --set image.tag=test --set serviceAccount.name=kubeteach --set dashboard.enabled=true --set dashboard.credentials.password=dummy --set dashboard.service.type=LoadBalancer --set webterminal.enabled=true
+      - name: Deploy kubeteach-example to kind cluster
+        run: |
+          kubectl apply -f .github/kind-test-taskdefinitions.yaml
+          sleep 15
+          kubectl get po -owide -n kubeteach-system
+          kubectl get deployments -n kubeteach-system  -o wide
+          kubectl get svc -n kubeteach-system  -o wide
+          kubectl get tasks -A
+      - name: Get LoadBalancerIP
+        id: loadbalancer
+        run: |
+          echo "ip=$(kubectl get svc -n kubeteach-system kubeteach-core-dashboard -o jsonpath='{.status.loadBalancer.ingress[0].ip}')" >> $GITHUB_OUTPUT
+      - name: Screenshot Website
+        uses: swinton/screenshot-website@v1.x
+        with:
+          source: http://kubeteach:dummy@${{ steps.loadbalancer.outputs.ip }}
+          destination: screenshot.png
   deploy-test:
     needs: [ generate ]
     runs-on: ubuntu-latest
@@ -83,7 +132,7 @@ jobs:
       - name: Create k8s Kind Cluster
         uses: helm/kind-action@v1.5.0
         with:
-          version: v0.12.0
+          version: v0.17.0
           cluster_name: kind
       - name: Install Helm
         uses: azure/setup-helm@v3
@@ -120,7 +169,7 @@ jobs:
       - name: Create k8s Kind Cluster
         uses: helm/kind-action@v1.5.0
         with:
-          version: v0.16.0
+          version: v0.17.0
           cluster_name: kind
       - name: Install Helm
         uses: azure/setup-helm@v3
