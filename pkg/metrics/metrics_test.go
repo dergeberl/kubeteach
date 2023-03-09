@@ -69,9 +69,9 @@ var _ = Describe("metrics tests", func() {
 		})
 
 		It("apply ExerciseSet status", func() {
-			testTasks1.Status.State = pointer.StringPtr(controllers.StateSuccessful)
-			testTasks2.Status.State = pointer.StringPtr(controllers.StateActive)
-			testTasks3.Status.State = pointer.StringPtr(controllers.StatePending)
+			testTasks1.Status.State = pointer.String(controllers.StateSuccessful)
+			testTasks2.Status.State = pointer.String(controllers.StateActive)
+			testTasks3.Status.State = pointer.String(controllers.StatePending)
 			Expect(k8sClient.Status().Update(ctx, &testTasks1)).Should(Succeed())
 			Expect(k8sClient.Status().Update(ctx, &testTasks2)).Should(Succeed())
 			Expect(k8sClient.Status().Update(ctx, &testTasks3)).Should(Succeed())
