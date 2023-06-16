@@ -144,7 +144,7 @@ func (c *Config) configureChi() *chi.Mux {
 	return r
 }
 
-func (c *Config) taskList(w http.ResponseWriter, r *http.Request) {
+func (c *Config) taskList(w http.ResponseWriter, _ *http.Request) {
 	if c.client == nil {
 		http.Error(w, "Kubernetes client not functional", http.StatusInternalServerError)
 		return
