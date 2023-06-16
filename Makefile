@@ -2,7 +2,7 @@
 # Image URL to use all building/pushing image targets
 IMG ?= ghcr.io/dergeberl/kubeteach:dev
 # ENVTEST_K8S_VERSION refers to the version of kubebuilder assets to be downloaded by envtest binary.
-ENVTEST_K8S_VERSION = 1.25.0
+ENVTEST_K8S_VERSION = 1.27.1
 
 # Get the currently used golang install path (in GOPATH/bin, unless GOBIN is set)
 ifeq (,$(shell go env GOBIN))
@@ -55,18 +55,18 @@ lint: golangci-lint ## Run go lint against code.
 	$(GOLANGCI_LINT) run
 
 test: manifests generate fmt vet lint envtest build-dashboard ## Run tests.
-		KUBEBUILDER_ASSETS="$(shell $(ENVTEST) use $(ENVTEST_K8S_VERSION) -p path)" go test ./... -race -coverprofile cover.out
+		KUBEBUILDER_ASSETS="$(shell $(ENVTEST) use $(ENVTEST_K8S_VERSION) --bin-dir $(LOCALBIN) -p path)" go test ./... -race -coverprofile cover.out
 
 ##@ Build
 
 build: generate fmt vet ## Build manager binary.
-	go build -o bin/manager main.go
+	go build -o bin/manager cmd/main.go
 
 build-dashboard: generate fmt vet ## Build manager binary.
 	cd dashboard && npm ci && npm run build
 
 run: manifests generate fmt vet build-dashboard ## Run a controller from your host.
-	go run ./main.go -dashboard -dashboard-content="./dashboard/dist"
+	go run ./cmd/main.go -dashboard -dashboard-content="./dashboard/dist"
 
 docker-build: test ## Build docker image with the manager.
 	docker build -t ${IMG} .
@@ -107,8 +107,8 @@ CONTROLLER_GEN ?= $(LOCALBIN)/controller-gen
 ENVTEST ?= $(LOCALBIN)/setup-envtest
 
 ## Tool Versions
-CONTROLLER_TOOLS_VERSION ?= v0.9.2
-GOLANGCI_LINT_VERSION ?= v1.50.1
+CONTROLLER_TOOLS_VERSION ?= v0.12.0
+GOLANGCI_LINT_VERSION ?= v1.53.2
 
 golangci-lint: $(GOLANGCI_LINT) ## Download golangci-lint locally if necessary.
 $(GOLANGCI_LINT): $(LOCALBIN)
@@ -116,7 +116,8 @@ $(GOLANGCI_LINT): $(LOCALBIN)
 
 controller-gen: $(CONTROLLER_GEN) ## Download controller-gen locally if necessary.
 $(CONTROLLER_GEN): $(LOCALBIN)
-	test -s $(LOCALBIN)/controller-gen || GOBIN=$(LOCALBIN) go install sigs.k8s.io/controller-tools/cmd/controller-gen@$(CONTROLLER_TOOLS_VERSION)
+	test -s $(LOCALBIN)/controller-gen && $(LOCALBIN)/controller-gen --version | grep -q $(CONTROLLER_TOOLS_VERSION) || \
+	GOBIN=$(LOCALBIN) go install sigs.k8s.io/controller-tools/cmd/controller-gen@$(CONTROLLER_TOOLS_VERSION)
 
 envtest: $(ENVTEST) ## Download envtest-setup locally if necessary.
 $(ENVTEST): $(LOCALBIN)

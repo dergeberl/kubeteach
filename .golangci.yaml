@@ -26,7 +26,6 @@ linters-settings:
 linters:
   enable:
     - bodyclose
-    - depguard
     - errcheck
     - gocritic
     - gofmt

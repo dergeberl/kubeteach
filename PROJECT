@@ -1,6 +1,6 @@
 domain: geberl.io
 layout:
-- go.kubebuilder.io/v3
+- go.kubebuilder.io/v4
 projectName: kubeteach
 repo: github.com/dergeberl/kubeteach
 resources:
