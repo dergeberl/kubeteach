@@ -1,6 +1,6 @@
 module github.com/dergeberl/kubeteach
 
-go 1.19
+go 1.20
 
 require (
 	github.com/go-chi/chi/v5 v5.0.8
@@ -10,10 +10,10 @@ require (
 	github.com/prometheus/client_golang v1.16.0
 	github.com/tidwall/gjson v1.14.4
 	go.uber.org/automaxprocs v1.5.2
-	k8s.io/api v0.27.2
-	k8s.io/apimachinery v0.27.2
-	k8s.io/client-go v0.27.2
-	k8s.io/utils v0.0.0-20230209194617-a36077c30491
+	k8s.io/api v0.27.3
+	k8s.io/apimachinery v0.27.3
+	k8s.io/client-go v0.27.3
+	k8s.io/utils v0.0.0-20230505201702-9f6742963106
 	sigs.k8s.io/controller-runtime v0.15.0
 )
 
