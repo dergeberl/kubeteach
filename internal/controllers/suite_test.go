@@ -59,7 +59,7 @@ var _ = BeforeSuite(func() {
 
 	By("bootstrapping test environment")
 	testEnv = &envtest.Environment{
-		CRDDirectoryPaths: []string{filepath.Join("..", "crds")},
+		CRDDirectoryPaths: []string{filepath.Join("..", "..", "crds")},
 	}
 
 	ctx, cancel = context.WithCancel(context.TODO())

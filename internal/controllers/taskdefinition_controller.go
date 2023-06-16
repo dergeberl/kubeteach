@@ -33,7 +33,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/log"
 
 	teachv1alpha1 "github.com/dergeberl/kubeteach/api/v1alpha1"
-	"github.com/dergeberl/kubeteach/controllers/condition"
+	"github.com/dergeberl/kubeteach/internal/controllers/condition"
 )
 
 // const for state field

@@ -60,13 +60,13 @@ test: manifests generate fmt vet lint envtest build-dashboard ## Run tests.
 ##@ Build
 
 build: generate fmt vet ## Build manager binary.
-	go build -o bin/manager main.go
+	go build -o bin/manager cmd/main.go
 
 build-dashboard: generate fmt vet ## Build manager binary.
 	cd dashboard && npm ci && npm run build
 
 run: manifests generate fmt vet build-dashboard ## Run a controller from your host.
-	go run ./main.go -dashboard -dashboard-content="./dashboard/dist"
+	go run ./cmd/main.go -dashboard -dashboard-content="./dashboard/dist"
 
 docker-build: test ## Build docker image with the manager.
 	docker build -t ${IMG} .

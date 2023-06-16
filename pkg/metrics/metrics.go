@@ -22,7 +22,7 @@ import (
 	"errors"
 
 	kubeteachv1alpha1 "github.com/dergeberl/kubeteach/api/v1alpha1"
-	"github.com/dergeberl/kubeteach/controllers"
+	"github.com/dergeberl/kubeteach/internal/controllers"
 	"github.com/go-logr/logr"
 	"github.com/prometheus/client_golang/prometheus"
 	"sigs.k8s.io/controller-runtime/pkg/client"

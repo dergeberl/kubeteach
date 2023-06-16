@@ -28,7 +28,7 @@ import (
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
 
 	kubeteachv1alpha1 "github.com/dergeberl/kubeteach/api/v1alpha1"
-	"github.com/dergeberl/kubeteach/controllers"
+	"github.com/dergeberl/kubeteach/internal/controllers"
 	kubeteachdashboard "github.com/dergeberl/kubeteach/pkg/dashboard"
 	kubeteachmetrics "github.com/dergeberl/kubeteach/pkg/metrics"
 

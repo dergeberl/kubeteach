@@ -19,7 +19,7 @@ package metrics
 import (
 	"fmt"
 
-	"github.com/dergeberl/kubeteach/controllers"
+	"github.com/dergeberl/kubeteach/internal/controllers"
 	"k8s.io/utils/pointer"
 
 	. "github.com/onsi/ginkgo/v2"
