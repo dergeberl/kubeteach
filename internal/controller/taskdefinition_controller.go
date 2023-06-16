@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-// Package controllers is a package of kubeteach and used for reconcile logic of kubernetes CRDs
+// Package controller is a package of kubeteach and used for reconcile logic of kubernetes CRDs
 package controller
 
 import (
