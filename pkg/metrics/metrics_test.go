@@ -19,7 +19,7 @@ package metrics
 import (
 	"fmt"
 
-	"github.com/dergeberl/kubeteach/internal/controllers"
+	"github.com/dergeberl/kubeteach/internal/controller"
 	"k8s.io/utils/pointer"
 
 	. "github.com/onsi/ginkgo/v2"
@@ -69,9 +69,9 @@ var _ = Describe("metrics tests", func() {
 		})
 
 		It("apply ExerciseSet status", func() {
-			testTasks1.Status.State = pointer.String(controllers.StateSuccessful)
-			testTasks2.Status.State = pointer.String(controllers.StateActive)
-			testTasks3.Status.State = pointer.String(controllers.StatePending)
+			testTasks1.Status.State = pointer.String(controller.StateSuccessful)
+			testTasks2.Status.State = pointer.String(controller.StateActive)
+			testTasks3.Status.State = pointer.String(controller.StatePending)
 			Expect(k8sClient.Status().Update(ctx, &testTasks1)).Should(Succeed())
 			Expect(k8sClient.Status().Update(ctx, &testTasks2)).Should(Succeed())
 			Expect(k8sClient.Status().Update(ctx, &testTasks3)).Should(Succeed())

@@ -15,7 +15,7 @@ limitations under the License.
 */
 
 // Package controllers is a package of kubeteach and used for reconcile logic of kubernetes CRDs
-package controllers
+package controller
 
 import (
 	"context"
@@ -33,7 +33,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/log"
 
 	teachv1alpha1 "github.com/dergeberl/kubeteach/api/v1alpha1"
-	"github.com/dergeberl/kubeteach/internal/controllers/condition"
+	"github.com/dergeberl/kubeteach/internal/controller/condition"
 )
 
 // const for state field

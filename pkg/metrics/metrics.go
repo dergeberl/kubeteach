@@ -22,7 +22,7 @@ import (
 	"errors"
 
 	kubeteachv1alpha1 "github.com/dergeberl/kubeteach/api/v1alpha1"
-	"github.com/dergeberl/kubeteach/internal/controllers"
+	"github.com/dergeberl/kubeteach/internal/controller"
 	"github.com/go-logr/logr"
 	"github.com/prometheus/client_golang/prometheus"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -209,11 +209,11 @@ func (e *Exporter) collectTask(metrics chan<- prometheus.Metric) error {
 		// 4 = unknown
 		stateInt := 4
 		switch state {
-		case controllers.StateSuccessful:
+		case controller.StateSuccessful:
 			stateInt = 1
-		case controllers.StateActive:
+		case controller.StateActive:
 			stateInt = 2
-		case controllers.StatePending:
+		case controller.StatePending:
 			stateInt = 3
 		}
 		metrics <- prometheus.MustNewConstMetric(

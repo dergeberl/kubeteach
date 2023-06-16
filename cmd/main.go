@@ -28,7 +28,7 @@ import (
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
 
 	kubeteachv1alpha1 "github.com/dergeberl/kubeteach/api/v1alpha1"
-	"github.com/dergeberl/kubeteach/internal/controllers"
+	"github.com/dergeberl/kubeteach/internal/controller"
 	kubeteachdashboard "github.com/dergeberl/kubeteach/pkg/dashboard"
 	kubeteachmetrics "github.com/dergeberl/kubeteach/pkg/metrics"
 
@@ -120,7 +120,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	if err = (&controllers.TaskDefinitionReconciler{
+	if err = (&controller.TaskDefinitionReconciler{
 		Client:      mgr.GetClient(),
 		Scheme:      mgr.GetScheme(),
 		Recorder:    mgr.GetEventRecorderFor("Task"),
@@ -129,7 +129,7 @@ func main() {
 		setupLog.Error(err, "unable to create controller", "controller", "TaskDefinition")
 		os.Exit(1)
 	}
-	if err = (&controllers.ExerciseSetReconciler{
+	if err = (&controller.ExerciseSetReconciler{
 		Client:      mgr.GetClient(),
 		Scheme:      mgr.GetScheme(),
 		RequeueTime: time.Duration(requeueTimeExerciseSet) * time.Second,
