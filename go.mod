@@ -8,7 +8,7 @@ require (
 	github.com/onsi/ginkgo/v2 v2.12.0
 	github.com/onsi/gomega v1.27.10
 	github.com/prometheus/client_golang v1.16.0
-	github.com/tidwall/gjson v1.14.4
+	github.com/tidwall/gjson v1.16.0
 	go.uber.org/automaxprocs v1.5.3
 	k8s.io/api v0.28.1
 	k8s.io/apimachinery v0.28.1
