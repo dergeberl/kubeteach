@@ -5,7 +5,7 @@ go 1.20
 require (
 	github.com/go-chi/chi/v5 v5.0.10
 	github.com/go-logr/logr v1.2.4
-	github.com/onsi/ginkgo/v2 v2.12.1
+	github.com/onsi/ginkgo/v2 v2.13.0
 	github.com/onsi/gomega v1.27.10
 	github.com/prometheus/client_golang v1.16.0
 	github.com/tidwall/gjson v1.17.0
