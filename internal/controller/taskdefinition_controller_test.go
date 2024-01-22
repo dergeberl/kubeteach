@@ -37,8 +37,8 @@ var _ = Describe("TaskConditions tests", func() {
 	timeout, retry := time.Second*5, time.Millisecond*300
 	Context("Run checks in checkItems", func() {
 		It("apply taskDefinitions", func() {
-			for _, test := range testsTaskDefinition {
-				Expect(k8sClient.Create(ctx, &test.taskDefinition)).Should(Succeed())
+			for i := range testsTaskDefinition {
+				Expect(k8sClient.Create(ctx, &testsTaskDefinition[i].taskDefinition)).Should(Succeed())
 			}
 		})
 
@@ -133,8 +133,8 @@ var _ = Describe("TaskConditions tests", func() {
 		})
 
 		It("delete all tests", func() {
-			for _, test := range testsTaskDefinition {
-				Expect(k8sClient.Delete(ctx, &test.taskDefinition)).Should(Succeed())
+			for i := range testsTaskDefinition {
+				Expect(k8sClient.Delete(ctx, &testsTaskDefinition[i].taskDefinition)).Should(Succeed())
 			}
 		})
 
