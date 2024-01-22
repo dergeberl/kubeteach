@@ -32,6 +32,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/envtest"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
+	"sigs.k8s.io/controller-runtime/pkg/metrics/server"
 
 	teachv1alpha1 "github.com/dergeberl/kubeteach/api/v1alpha1"
 	// +kubebuilder:scaffold:imports
@@ -79,8 +80,10 @@ var _ = BeforeSuite(func() {
 	Expect(k8sClient).ToNot(BeNil())
 
 	k8sManager, err := ctrl.NewManager(cfg, ctrl.Options{
-		Scheme:             scheme.Scheme,
-		MetricsBindAddress: ":8081",
+		Scheme: scheme.Scheme,
+		Metrics: server.Options{
+			BindAddress: ":8081",
+		},
 	})
 
 	Expect(err).ToNot(HaveOccurred())
