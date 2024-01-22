@@ -21,6 +21,10 @@ linters-settings:
     locale: "US"
   lll:
     line-length: 140
+  revive:
+    rules:
+    - name: dot-imports
+      disabled: true
 
 
 linters:
