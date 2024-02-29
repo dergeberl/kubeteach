@@ -86,7 +86,7 @@ jobs:
           version: v0.20.0
           cluster_name: kind
       - name: Install Helm
-        uses: azure/setup-helm@v3
+        uses: azure/setup-helm@v4
       - name: Install MetalLb
         run: |
           kubectl apply -f https://raw.githubusercontent.com/metallb/metallb/v0.13.7/config/manifests/metallb-native.yaml
@@ -135,7 +135,7 @@ jobs:
           version: v0.20.0
           cluster_name: kind
       - name: Install Helm
-        uses: azure/setup-helm@v3
+        uses: azure/setup-helm@v4
       - name: Deploy helm-chart
         run: |
           kind load docker-image local-kind-test:test
@@ -172,7 +172,7 @@ jobs:
           version: v0.20.0
           cluster_name: kind
       - name: Install Helm
-        uses: azure/setup-helm@v3
+        uses: azure/setup-helm@v4
       - name: Deploy helm-chart
         run: |
           kind load docker-image local-kind-test:test
